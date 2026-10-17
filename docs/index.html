@@ -22,16 +22,17 @@ body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-appl
 button,select,input{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px}
 button.on{border-color:var(--amb)}
 input{width:90px}
-#chart{height:62vh;min-height:360px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
-table{width:100%;border-collapse:collapse;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
-th{color:var(--mut);font-weight:500;font-size:12px}
-td.n{font-variant-numeric:tabular-nums;text-align:right}
-tr.now td{background:var(--nowbg);font-weight:600}
+#chartbox{position:relative;height:62vh;min-height:380px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#chart{position:absolute;inset:0}
+#tbl{width:100%;border-collapse:collapse;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#tbl th,#tbl td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
+#tbl th{color:var(--mut);font-weight:500;font-size:12px}
+#tbl td.n{font-variant-numeric:tabular-nums;text-align:right}
+#tbl tr.now td{background:var(--nowbg);font-weight:600}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 a{color:#6fd0ff}
 .note{color:var(--mut);font-size:12px;margin-top:14px}
-@media(max-width:600px){.price{font-size:22px}th:nth-child(4),td:nth-child(4){display:none}}
+@media(max-width:600px){.price{font-size:22px}#tbl th:nth-child(4),#tbl td:nth-child(4){display:none}}
 </style>
 </head>
 <body>
@@ -48,7 +49,7 @@ a{color:#6fd0ff}
     <button id="tg_mark" class="on">Flip / pain / VWAP / POC</button>
     <span class="sub">Match OANDA:</span><input id="sync" inputmode="decimal" placeholder="OANDA price"><button id="syncbtn">Set</button><button id="syncreset">Auto</button>
   </div>
-  <div id="chart"></div>
+  <div id="chartbox"><div id="chart"></div></div>
   <table id="tbl"><thead><tr><th>Level</th><th class="n" style="text-align:right">Price</th><th class="n" style="text-align:right">From price</th><th>Contracts (calls / puts)</th></tr></thead><tbody></tbody></table>
   <div class="note">Candles come from the PAXG gold token on Binance, shifted to XAUUSD terms, so they can differ from OANDA by a few dollars: use “Match OANDA” to line them up. Levels refresh about every 15 minutes during US hours. <a href="dashboard.html">Full table dashboard</a></div>
 </div>
@@ -64,24 +65,25 @@ const dark=!matchMedia("(prefers-color-scheme:light)").matches;
 const chart=LightweightCharts.createChart($("chart"),{
   layout:{background:{color:dark?"#121827":"#ffffff"},textColor:dark?"#c7cfe6":"#2b3350"},
   grid:{vertLines:{color:dark?"#1b2338":"#e8ecf5"},horzLines:{color:dark?"#1b2338":"#e8ecf5"}},
-  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:12},
+  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:6},
   rightPriceScale:{borderColor:"#232c42"},crosshair:{mode:0},autoSize:true});
 const series=chart.addCandlestickSeries({
   autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
     for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; if(Math.abs(w.px-last)<=45){lo=Math.min(lo,w.px-2);hi=Math.max(hi,w.px+2);} }
     return {priceRange:{minValue:lo,maxValue:hi},margins:b.margins}; },upColor:"#2ecc71",downColor:"#ff5252",borderVisible:false,wickUpColor:"#2ecc71",wickDownColor:"#ff5252"});
+const TZ=-new Date().getTimezoneOffset()*60; // show your local time on the axis
 const HOSTS=["https://api.binance.com","https://data-api.binance.vision"];
 async function klines(limit){
   for(const h of HOSTS){
     try{const r=await fetch(`${h}/api/v3/klines?symbol=PAXGUSDT&interval=${tf}&limit=${limit}`);
-      if(r.ok){return (await r.json()).map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
+      if(r.ok){return (await r.json()).map(k=>({time:Math.floor(k[0]/1000)+TZ,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
   } return null;
 }
 const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
 let raw=[];
 function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?data.paxg.premium:0; }
 function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
-async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); chart.timeScale().scrollToRealTime(); }
+async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); const n=raw.length; chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
 async function tick(){ const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); }
 function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
 function drawLines(){
@@ -117,6 +119,7 @@ async function loadLevels(){
   let w=""; const rw=data.ratio_warn;
   if(mins>90) w+=`<div class="warn bad">These levels are ${Math.round(mins/60)} h old. Markets may be closed, or the auto-update may have stopped.</div>`;
   if(rw&&rw[0]!=="ok") w+=`<div class="warn">${rw[1]}</div>`;
+  if(data.paxg&&Math.abs(data.paxg.premium)<0.005) w+=`<div class="warn">The server could not get the real gold price, so candles are raw PAXG prices and can differ from OANDA. Type your OANDA price in “Match OANDA” and press Set.</div>`;
   $("warn").innerHTML=w; redraw();
 }
 $("tf").onchange=()=>{tf=$("tf").value;store.set("tf",tf);loadCandles()};
