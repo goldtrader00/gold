@@ -62,10 +62,16 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 let data=null, lines=[], last=null, offset=0, manual=store.get("manualOffset")!==null?parseFloat(store.get("manualOffset")):null;
 let show={opt:true,mark:true}, tf=store.get("tf")||"5m"; $("tf").value=tf;
 const dark=!matchMedia("(prefers-color-scheme:light)").matches;
+const t12=d=>{const h=d.getUTCHours(),m=d.getUTCMinutes();return ((h%12)||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"AM":"PM");};
 const chart=LightweightCharts.createChart($("chart"),{
   layout:{background:{color:dark?"#121827":"#ffffff"},textColor:dark?"#c7cfe6":"#2b3350"},
   grid:{vertLines:{color:dark?"#1b2338":"#e8ecf5"},horzLines:{color:dark?"#1b2338":"#e8ecf5"}},
-  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:6,lockVisibleTimeRangeOnResize:true},
+  localization:{timeFormatter:t=>{const d=new Date(t*1000);return d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})+"  "+t12(d);}},
+  timeScale:{tickMarkFormatter:(t,type)=>{const d=new Date(t*1000);
+      if(type===0)return String(d.getUTCFullYear());
+      if(type===1)return d.toLocaleDateString("en-US",{month:"short",timeZone:"UTC"});
+      if(type===2)return d.toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"});
+      return t12(d);},timeVisible:true,secondsVisible:false,rightOffset:6,lockVisibleTimeRangeOnResize:true},
   rightPriceScale:{borderColor:"#232c42"},crosshair:{mode:0},autoSize:true});
 const series=chart.addCandlestickSeries({
   autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
