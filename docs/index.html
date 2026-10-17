@@ -78,11 +78,15 @@ const series=chart.addCandlestickSeries({
     for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; if(Math.abs(w.px-last)<=45){lo=Math.min(lo,w.px-2);hi=Math.max(hi,w.px+2);} }
     return {priceRange:{minValue:lo,maxValue:hi},margins:b.margins}; },upColor:"#2ecc71",downColor:"#ff5252",borderVisible:false,wickUpColor:"#2ecc71",wickDownColor:"#ff5252"});
 const TZ=-new Date().getTimezoneOffset()*60; // show your local time on the axis
+// Gold (OANDA) is closed from Friday 5 PM to Sunday 6 PM New York time, plus a daily break 5-6 PM New York (Mon-Thu). New York time follows daylight saving automatically. PAXG keeps trading, so we hide those candles.
+const nyFmt=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",weekday:"short",hour:"numeric",hourCycle:"h23"});
+function goldClosed(ms){const p=nyFmt.formatToParts(new Date(ms));const wd=p.find(x=>x.type==="weekday").value,h=+p.find(x=>x.type==="hour").value;
+  return (wd==="Fri"&&h>=17)||wd==="Sat"||(wd==="Sun"&&h<18)||(h===17&&["Mon","Tue","Wed","Thu"].includes(wd));}  // last part = daily 1-hour break
 const HOSTS=["https://api.binance.com","https://data-api.binance.vision"];
 async function klines(limit){
   for(const h of HOSTS){
     try{const r=await fetch(`${h}/api/v3/klines?symbol=PAXGUSDT&interval=${tf}&limit=${limit}`);
-      if(r.ok){return (await r.json()).map(k=>({time:Math.floor(k[0]/1000)+TZ,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
+      if(r.ok){return (await r.json()).filter(k=>!goldClosed(k[0])).map(k=>({time:Math.floor(k[0]/1000)+TZ,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
   } return null;
 }
 const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
@@ -112,6 +116,7 @@ function buildTable(){
     tb.appendChild(tr);} if(!placed)nowRow();
 }
 function updTop(){
+  $("pxsub").textContent=goldClosed(Date.now())?"XAUUSD · gold market closed (showing Friday's last price)":"XAUUSD (PAXG-aligned)";
   if(last==null)return; $("px").textContent=fmt(last);
   if(!data)return; const L=(data.web_levels||[]).slice();
   const up=L.filter(w=>w.px>last).sort((a,b)=>a.px-b.px)[0], dn=L.filter(w=>w.px<=last).sort((a,b)=>b.px-a.px)[0];
