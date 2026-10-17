@@ -1,8 +1,8 @@
 {
   "symbol": "GLD",
   "max_dte": 45,
-  "quote_age_min": 613.8314558,
-  "generated_local": "2026-10-17 13:13 (UTC+7)",
+  "quote_age_min": 1081.3305482833334,
+  "generated_local": "2026-10-17 21:01 (UTC+7)",
   "gld_price": 384.29228838752294,
   "gld_quote": 381.45,
   "spot_xauusd": 4181.1,
@@ -13,8 +13,8 @@
   "gamma_regime": "positive gamma (hedging dampens moves)",
   "max_pain_xauusd": 4101.76,
   "max_pain_expiry": "2026-10-19",
-  "vwap_week": 4175.65,
-  "vwap_month": 4179.82,
+  "vwap_week": 4174.51,
+  "vwap_month": 4178.54,
   "walls": {
     "put_wall_xauusd": 4134.4,
     "put_wall_oi": 16179,
@@ -303,25 +303,25 @@
   "paxg": {
     "symbol": "PAXGUSDT",
     "profile": {
-      "Wk POC": 4182.63,
-      "Wk VAH": 4212.13,
-      "Wk VAL": 4159.13,
-      "Mo POC": 4207.63,
-      "Mo VAH": 4216.13,
-      "Mo VAL": 4161.13
+      "Wk POC": 4181.33,
+      "Wk VAH": 4209.83,
+      "Wk VAL": 4157.83,
+      "Mo POC": 4206.33,
+      "Mo VAH": 4214.83,
+      "Mo VAL": 4159.83
     },
-    "last": 4162.97,
-    "premium": -18.130097656249745,
-    "premium_pct": -0.43362027296148015,
-    "vwap_week_token": 4157.5221882990245,
-    "vwap_month_token": 4161.692038289291,
-    "vwap_week_spot": 4175.65,
-    "vwap_month_spot": 4179.82,
-    "week_volume_oz": 18314.5962,
-    "week_buy_pct": 49.5,
-    "week_delta_oz": -188.6333999999988,
+    "last": 4164.27,
+    "premium": -16.830097656249563,
+    "premium_pct": -0.4025279774020195,
+    "vwap_week_token": 4157.682120012157,
+    "vwap_month_token": 4161.7140107965915,
+    "vwap_week_spot": 4174.51,
+    "vwap_month_spot": 4178.54,
+    "week_volume_oz": 18754.581299999998,
+    "week_buy_pct": 49.9,
+    "week_delta_oz": -39.84889999999723,
     "price_at_quote": 4169.3,
-    "last_bar_utc": "17/10 06:00"
+    "last_bar_utc": "17/10 14:00"
   },
   "score": {
     "value": -0.22,
@@ -468,23 +468,12 @@
       "rank": 1
     },
     {
-      "kind": "special",
-      "tags": [
-        "Mo VAH"
-      ],
-      "signal": "VPROF",
-      "zone_lo": 4216.13,
-      "zone_hi": 4216.13,
-      "dist": 35.03,
-      "pos": "above",
-      "dist_pct": 0.84
-    },
-    {
       "kind": "strike",
       "tags": [
         "Call OI",
         "Wk VAH",
-        "Mo POC"
+        "Mo POC",
+        "Mo VAH"
       ],
       "pos": "above",
       "signal": "RESISTANCE",
@@ -757,11 +746,11 @@
       ],
       "pos": "below",
       "signal": "SUPPORT",
-      "zone_lo": 4031.76,
-      "zone_hi": 4072.29,
-      "dist": 108.81,
-      "dist_pct": 2.6,
-      "notional_usd": 4834876346.5234375,
+      "zone_lo": 4030.47,
+      "zone_hi": 4070.98,
+      "dist": 110.12,
+      "dist_pct": 2.63,
+      "notional_usd": 4833325186.523437,
       "expiry": "COT 28/10/25",
       "chg": 11932,
       "strength_x": 0.7,
@@ -1131,13 +1120,13 @@
     "marks": [
       {
         "name": "VWAP M",
-        "px": 4179.82,
-        "dist": -1.28
+        "px": 4178.54,
+        "dist": -2.56
       },
       {
         "name": "VWAP W",
-        "px": 4175.65,
-        "dist": -5.45
+        "px": 4174.51,
+        "dist": -6.59
       },
       {
         "name": "Gamma flip",
@@ -1155,7 +1144,7 @@
   },
   "full_table": false,
   "show_profile": true,
-  "generated_ms": 1792217628887,
+  "generated_ms": 1792245678832,
   "ratio_warn": [
     "bad",
     "No fresh price ratio yet: strike levels (ceilings, floors, flip, max pain) can be off by $10\u201350. Run again during US hours (after 20:50 your time). VWAPs are not affected."
@@ -1168,6 +1157,8 @@
       ],
       "col": "#ff5252",
       "oi": "#4  C 11.3K / P 2.3K",
+      "pax": false,
+      "raw": 4280.77,
       "dotted": false
     },
     {
@@ -1177,25 +1168,31 @@
       ],
       "col": "#ff5252",
       "oi": "#1  C 13.7K / P 32.9K",
+      "pax": false,
+      "raw": 4226.37,
       "dotted": false
     },
     {
-      "px": 4207.63,
+      "px": 4206.33,
       "names": [
         "Month POC"
       ],
       "col": "#ffa94d",
       "oi": "",
+      "pax": true,
+      "raw": 4189.5,
       "dotted": true
     },
     {
-      "px": 4177.73,
+      "px": 4176.52,
       "names": [
-        "Week POC",
-        "VWAP W + M"
+        "VWAP W + M",
+        "Week POC"
       ],
       "col": "#6fd0ff",
       "oi": "",
+      "pax": true,
+      "raw": 4159.69,
       "dotted": true
     },
     {
@@ -1205,6 +1202,8 @@
       ],
       "col": "#b79bff",
       "oi": "",
+      "pax": false,
+      "raw": 4127.58,
       "dotted": true
     },
     {
@@ -1214,6 +1213,8 @@
       ],
       "col": "#2ecc71",
       "oi": "#2  C 14.8K / P 16.2K",
+      "pax": false,
+      "raw": 4117.57,
       "dotted": false
     },
     {
@@ -1223,6 +1224,8 @@
       ],
       "col": "#f5c542",
       "oi": "",
+      "pax": false,
+      "raw": 4084.93,
       "dotted": true
     },
     {
@@ -1232,6 +1235,8 @@
       ],
       "col": "#2ecc71",
       "oi": "#3  C 7.7K / P 9.0K",
+      "pax": false,
+      "raw": 4063.17,
       "dotted": false
     }
   ]
