@@ -75,7 +75,7 @@ const chart=LightweightCharts.createChart($("chart"),{
   rightPriceScale:{borderColor:"#232c42"},crosshair:{mode:0},autoSize:true});
 const series=chart.addCandlestickSeries({
   autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
-    for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; if(Math.abs(w.px-last)<=45){lo=Math.min(lo,w.px-2);hi=Math.max(hi,w.px+2);} }
+    for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; const q=dpx(w);if(Math.abs(q-last)<=45){lo=Math.min(lo,q-2);hi=Math.max(hi,q+2);} }
     return {priceRange:{minValue:lo,maxValue:hi},margins:b.margins}; },upColor:"#2ecc71",downColor:"#ff5252",borderVisible:false,wickUpColor:"#2ecc71",wickDownColor:"#ff5252"});
 const TZ=-new Date().getTimezoneOffset()*60; // show your local time on the axis
 // Gold (OANDA) is closed from Friday 5 PM to Sunday 6 PM New York time, plus a daily break 5-6 PM New York (Mon-Thu). New York time follows daylight saving automatically. PAXG keeps trading, so we hide those candles.
@@ -92,6 +92,7 @@ async function klines(limit){
 const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
 let raw=[];
 function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?data.paxg.premium:0; }
+const dpx=w=>w.pax&&w.raw!=null?w.raw-curOffset():w.px; // volume/VWAP levels move with the candles; option levels stay put
 function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
 function fit(){ const n=raw.length; if(n) chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
 async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
@@ -101,26 +102,26 @@ function drawLines(){
   clearLines(); if(!data)return;
   for(const w of data.web_levels||[]){
     if(w.dotted?!show.mark:!show.opt)continue;
-    lines.push(series.createPriceLine({price:w.px,color:w.col,lineWidth:w.dotted?1:2,lineStyle:w.dotted?1:0,axisLabelVisible:true,
+    lines.push(series.createPriceLine({price:dpx(w),color:w.col,lineWidth:w.dotted?1:2,lineStyle:w.dotted?1:0,axisLabelVisible:true,
       title:w.names.join(" + ")+(w.oi?"  "+w.oi.replace(/^#\d+\s+/,""):"")}));
   }
   buildTable();
 }
 function fmt(v){return v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function buildTable(){
-  const rows=(data.web_levels||[]).slice().sort((a,b)=>b.px-a.px); const tb=document.querySelector("#tbl tbody"); tb.innerHTML="";
+  const rows=(data.web_levels||[]).slice().sort((a,b)=>dpx(b)-dpx(a)); const tb=document.querySelector("#tbl tbody"); tb.innerHTML="";
   let placed=false; const ref=last??data.spot_xauusd;
   const nowRow=()=>{const tr=document.createElement("tr");tr.className="now";tr.innerHTML=`<td colspan="4">Price now: ${fmt(ref)}</td>`;tb.appendChild(tr);placed=true;};
-  for(const w of rows){ if(!placed&&w.px<ref)nowRow(); const d=w.px-ref; const tr=document.createElement("tr");
-    tr.innerHTML=`<td><span class="dot" style="background:${w.col}"></span>${w.names.join(" + ")}</td><td class="n">${fmt(w.px)}</td><td class="n" style="color:${d>0?'var(--red)':'var(--grn)'}">${d>0?"▲":"▼"} $${Math.abs(d).toFixed(2)}</td><td>${w.oi.replace(/^#\d+\s+/,"")||"–"}</td>`;
+  for(const w of rows){ const px=dpx(w); if(!placed&&px<ref)nowRow(); const d=px-ref; const tr=document.createElement("tr");
+    tr.innerHTML=`<td><span class="dot" style="background:${w.col}"></span>${w.names.join(" + ")}</td><td class="n">${fmt(px)}</td><td class="n" style="color:${d>0?'var(--red)':'var(--grn)'}">${d>0?"▲":"▼"} $${Math.abs(d).toFixed(2)}</td><td>${w.oi.replace(/^#\d+\s+/,"")||"–"}</td>`;
     tb.appendChild(tr);} if(!placed)nowRow();
 }
 function updTop(){
   $("pxsub").textContent=goldClosed(Date.now())?"XAUUSD · gold market closed (showing Friday's last price)":"XAUUSD (PAXG-aligned)";
   if(last==null)return; $("px").textContent=fmt(last);
   if(!data)return; const L=(data.web_levels||[]).slice();
-  const up=L.filter(w=>w.px>last).sort((a,b)=>a.px-b.px)[0], dn=L.filter(w=>w.px<=last).sort((a,b)=>b.px-a.px)[0];
-  const mk=(lab,w,c)=>w?`<div class="chip">${lab}: <b style="color:${c}">${fmt(w.px)}</b> ${w.names.join(" + ")} · $${Math.abs(w.px-last).toFixed(1)}</div>`:"";
+  const up=L.filter(w=>dpx(w)>last).sort((a,b)=>dpx(a)-dpx(b))[0], dn=L.filter(w=>dpx(w)<=last).sort((a,b)=>dpx(b)-dpx(a))[0];
+  const mk=(lab,w,c)=>w?`<div class="chip">${lab}: <b style="color:${c}">${fmt(dpx(w))}</b> ${w.names.join(" + ")} · $${Math.abs(dpx(w)-last).toFixed(1)}</div>`:"";
   $("near").innerHTML=mk("Next above",up,"var(--red)")+mk("Next below",dn,"var(--grn)");
 }
 async function loadLevels(){
