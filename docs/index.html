@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gold Levels</title>
+<style>
+:root{--bg:#0b0f1a;--panel:#121827;--line:#232c42;--tx:#e6eaf5;--mut:#8b96b3;--red:#ff5252;--grn:#2ecc71;--amb:#f5c542;--warnbg:#3a2d10;--warntx:#ffd27a;--warnbd:#6b5217;--badbg:#3a1515;--badtx:#ffb0b0;--badbd:#7a2a2a;--nowbg:#13304f}
+@media (prefers-color-scheme:light){:root{--bg:#f4f6fb;--panel:#fff;--line:#d9dfec;--tx:#141a2b;--mut:#5b6685;--warnbg:#fff3d6;--warntx:#6b4a00;--warnbd:#e5c36a;--badbg:#ffe3e3;--badtx:#8a1f1f;--badbd:#e59a9a;--nowbg:#d9ecff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 16px 40px}
+.top{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
+.price{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.sub{color:var(--mut);font-size:13px}
+.near{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+.chip b{font-variant-numeric:tabular-nums}
+.warn{background:var(--warnbg);color:var(--warntx);border:1px solid var(--warnbd);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+.warn.bad{background:var(--badbg);color:var(--badtx);border-color:var(--badbd)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+button,select,input{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px}
+button.on{border-color:var(--amb)}
+input{width:90px}
+#chart{height:62vh;min-height:360px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
+th{color:var(--mut);font-weight:500;font-size:12px}
+td.n{font-variant-numeric:tabular-nums;text-align:right}
+tr.now td{background:var(--nowbg);font-weight:600}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+a{color:#6fd0ff}
+.note{color:var(--mut);font-size:12px;margin-top:14px}
+@media(max-width:600px){.price{font-size:22px}th:nth-child(4),td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><span class="price" id="px">--</span> <span class="sub" id="pxsub">XAUUSD (PAXG-aligned)</span></div>
+    <div class="sub" id="age">loading levels…</div>
+  </div>
+  <div class="near" id="near"></div>
+  <div id="warn"></div>
+  <div class="bar">
+    <select id="tf"><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option><option value="1h">1h</option></select>
+    <button id="tg_opt" class="on">Option levels</button>
+    <button id="tg_mark" class="on">Flip / pain / VWAP / POC</button>
+    <span class="sub">Match OANDA:</span><input id="sync" inputmode="decimal" placeholder="OANDA price"><button id="syncbtn">Set</button><button id="syncreset">Auto</button>
+  </div>
+  <div id="chart"></div>
+  <table id="tbl"><thead><tr><th>Level</th><th class="n" style="text-align:right">Price</th><th class="n" style="text-align:right">From price</th><th>Contracts (calls / puts)</th></tr></thead><tbody></tbody></table>
+  <div class="note">Candles come from the PAXG gold token on Binance, shifted to XAUUSD terms, so they can differ from OANDA by a few dollars: use “Match OANDA” to line them up. Levels refresh about every 15 minutes during US hours. <a href="dashboard.html">Full table dashboard</a></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.1.3/lightweight-charts.standalone.production.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+let data=null, lines=[], last=null, offset=0, manual=store.get("manualOffset")!==null?parseFloat(store.get("manualOffset")):null;
+let show={opt:true,mark:true}, tf=store.get("tf")||"5m"; $("tf").value=tf;
+const dark=!matchMedia("(prefers-color-scheme:light)").matches;
+const chart=LightweightCharts.createChart($("chart"),{
+  layout:{background:{color:dark?"#121827":"#ffffff"},textColor:dark?"#c7cfe6":"#2b3350"},
+  grid:{vertLines:{color:dark?"#1b2338":"#e8ecf5"},horzLines:{color:dark?"#1b2338":"#e8ecf5"}},
+  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:12},
+  rightPriceScale:{borderColor:"#232c42"},crosshair:{mode:0},autoSize:true});
+const series=chart.addCandlestickSeries({
+  autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
+    for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; if(Math.abs(w.px-last)<=45){lo=Math.min(lo,w.px-2);hi=Math.max(hi,w.px+2);} }
+    return {priceRange:{minValue:lo,maxValue:hi},margins:b.margins}; },upColor:"#2ecc71",downColor:"#ff5252",borderVisible:false,wickUpColor:"#2ecc71",wickDownColor:"#ff5252"});
+const HOSTS=["https://api.binance.com","https://data-api.binance.vision"];
+async function klines(limit){
+  for(const h of HOSTS){
+    try{const r=await fetch(`${h}/api/v3/klines?symbol=PAXGUSDT&interval=${tf}&limit=${limit}`);
+      if(r.ok){return (await r.json()).map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
+  } return null;
+}
+const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
+let raw=[];
+function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?data.paxg.premium:0; }
+function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
+async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); chart.timeScale().scrollToRealTime(); }
+async function tick(){ const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); }
+function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
+function drawLines(){
+  clearLines(); if(!data)return;
+  for(const w of data.web_levels||[]){
+    if(w.dotted?!show.mark:!show.opt)continue;
+    lines.push(series.createPriceLine({price:w.px,color:w.col,lineWidth:w.dotted?1:2,lineStyle:w.dotted?1:0,axisLabelVisible:true,
+      title:w.names.join(" + ")+(w.oi?"  "+w.oi.replace(/^#\d+\s+/,""):"")}));
+  }
+  buildTable();
+}
+function fmt(v){return v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function buildTable(){
+  const rows=(data.web_levels||[]).slice().sort((a,b)=>b.px-a.px); const tb=document.querySelector("#tbl tbody"); tb.innerHTML="";
+  let placed=false; const ref=last??data.spot_xauusd;
+  const nowRow=()=>{const tr=document.createElement("tr");tr.className="now";tr.innerHTML=`<td colspan="4">Price now: ${fmt(ref)}</td>`;tb.appendChild(tr);placed=true;};
+  for(const w of rows){ if(!placed&&w.px<ref)nowRow(); const d=w.px-ref; const tr=document.createElement("tr");
+    tr.innerHTML=`<td><span class="dot" style="background:${w.col}"></span>${w.names.join(" + ")}</td><td class="n">${fmt(w.px)}</td><td class="n" style="color:${d>0?'var(--red)':'var(--grn)'}">${d>0?"▲":"▼"} $${Math.abs(d).toFixed(2)}</td><td>${w.oi.replace(/^#\d+\s+/,"")||"–"}</td>`;
+    tb.appendChild(tr);} if(!placed)nowRow();
+}
+function updTop(){
+  if(last==null)return; $("px").textContent=fmt(last);
+  if(!data)return; const L=(data.web_levels||[]).slice();
+  const up=L.filter(w=>w.px>last).sort((a,b)=>a.px-b.px)[0], dn=L.filter(w=>w.px<=last).sort((a,b)=>b.px-a.px)[0];
+  const mk=(lab,w,c)=>w?`<div class="chip">${lab}: <b style="color:${c}">${fmt(w.px)}</b> ${w.names.join(" + ")} · $${Math.abs(w.px-last).toFixed(1)}</div>`:"";
+  $("near").innerHTML=mk("Next above",up,"var(--red)")+mk("Next below",dn,"var(--grn)");
+}
+async function loadLevels(){
+  try{ const r=await fetch("levels.json?t="+Date.now(),{cache:"no-store"}); data=await r.json(); }catch(e){ $("age").textContent="levels file not found yet"; return; }
+  const mins=Math.round((Date.now()-data.generated_ms)/60000);
+  const t=new Date(data.generated_ms);
+  $("age").textContent=`Levels from ${t.toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"})} (${mins<90?mins+" min":Math.round(mins/60)+" h"} ago)`;
+  let w=""; const rw=data.ratio_warn;
+  if(mins>90) w+=`<div class="warn bad">These levels are ${Math.round(mins/60)} h old. Markets may be closed, or the auto-update may have stopped.</div>`;
+  if(rw&&rw[0]!=="ok") w+=`<div class="warn">${rw[1]}</div>`;
+  $("warn").innerHTML=w; redraw();
+}
+$("tf").onchange=()=>{tf=$("tf").value;store.set("tf",tf);loadCandles()};
+$("tg_opt").onclick=e=>{show.opt=!show.opt;e.target.classList.toggle("on",show.opt);drawLines()};
+$("tg_mark").onclick=e=>{show.mark=!show.mark;e.target.classList.toggle("on",show.mark);drawLines()};
+$("syncbtn").onclick=()=>{const v=parseFloat($("sync").value); if(!v||!raw.length)return; manual=raw[raw.length-1].close-v; store.set("manualOffset",manual); redraw();};
+$("syncreset").onclick=()=>{manual=null;store.del("manualOffset");$("sync").value="";redraw();};
+loadCandles(); loadLevels(); setInterval(tick,8000); setInterval(loadLevels,60000);
+</script>
+</body>
+</html>
