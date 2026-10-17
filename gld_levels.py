@@ -1189,7 +1189,10 @@ def build_pine(out, rng=60.0, nmax=8, clusters_only=False):
                      "oi": host["oi"], "dist": abs(host["px"] - spot)})
     outc = sorted(sorted(outc, key=lambda c: c["dist"])[:nmax], key=lambda c: -c["px"])
     if clusters_only:                            # used by the website: same merged levels as the Pine script
+        PAX = ("VWAP week", "VWAP month", "VWAP W + M", "Week POC", "Month POC")
+        prem_ = float((out.get("paxg") or {}).get("premium") or 0.0)
         return [{"px": round(c["px"], 2), "names": c["names"], "col": c["col"], "oi": c["oi"],
+                 "pax": all(n_ in PAX for n_ in c["names"]), "raw": round(c["px"] + prem_, 2),
                  "dotted": all(n in ("Gamma Flip", "Max Pain", "VWAP week", "VWAP month", "VWAP W + M", "Week POC", "Month POC")
                                for n in c["names"])} for c in outc]
     keep = lambda c: any(abs(c["px"] - o["px"]) <= 6 for o in outc)
