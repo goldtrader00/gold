@@ -52,8 +52,10 @@ a{color:#6fd0ff}
   <table id="tbl"><thead><tr><th>Level</th><th class="n" style="text-align:right">Price</th><th class="n" style="text-align:right">From price</th><th>Contracts (calls / puts)</th></tr></thead><tbody></tbody></table>
   <div class="note">Candles come from the PAXG gold token on Binance, shifted to XAUUSD terms, so they can differ from OANDA by a few dollars: use “Match OANDA” to line them up. Levels refresh about every 15 minutes during US hours. <a href="dashboard.html">Full table dashboard</a></div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.1.3/lightweight-charts.standalone.production.js"></script>
+<script src="lc.js"></script>
 <script>
+window.addEventListener("error",e=>{const d=document.getElementById("age");if(d)d.textContent="Page error: "+e.message;});
+if(typeof LightweightCharts==="undefined"){document.getElementById("age").textContent="Chart library failed to load (lc.js missing?)";}
 const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 let data=null, lines=[], last=null, offset=0, manual=store.get("manualOffset")!==null?parseFloat(store.get("manualOffset")):null;
