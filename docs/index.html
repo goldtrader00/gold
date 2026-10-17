@@ -65,7 +65,7 @@ const dark=!matchMedia("(prefers-color-scheme:light)").matches;
 const chart=LightweightCharts.createChart($("chart"),{
   layout:{background:{color:dark?"#121827":"#ffffff"},textColor:dark?"#c7cfe6":"#2b3350"},
   grid:{vertLines:{color:dark?"#1b2338":"#e8ecf5"},horzLines:{color:dark?"#1b2338":"#e8ecf5"}},
-  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:6},
+  timeScale:{timeVisible:true,secondsVisible:false,rightOffset:6,lockVisibleTimeRangeOnResize:true},
   rightPriceScale:{borderColor:"#232c42"},crosshair:{mode:0},autoSize:true});
 const series=chart.addCandlestickSeries({
   autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
@@ -83,7 +83,8 @@ const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.cl
 let raw=[];
 function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?data.paxg.premium:0; }
 function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
-async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); const n=raw.length; chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
+function fit(){ const n=raw.length; if(n) chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
+async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
 async function tick(){ const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); }
 function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
 function drawLines(){
