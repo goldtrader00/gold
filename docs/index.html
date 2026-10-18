@@ -83,11 +83,22 @@ const nyFmt=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",weekday
 function goldClosed(ms){const p=nyFmt.formatToParts(new Date(ms));const wd=p.find(x=>x.type==="weekday").value,h=+p.find(x=>x.type==="hour").value;
   return (wd==="Fri"&&h>=17)||wd==="Sat"||(wd==="Sun"&&h<18)||(h===17&&["Mon","Tue","Wed","Thu"].includes(wd));}  // last part = daily 1-hour break
 const HOSTS=["https://api.binance.com","https://data-api.binance.vision"];
-async function klines(limit){
+const toC=k=>({time:Math.floor(k[0]/1000)+TZ,open:+k[1],high:+k[2],low:+k[3],close:+k[4]});
+async function fetchRows(limit,end){
   for(const h of HOSTS){
-    try{const r=await fetch(`${h}/api/v3/klines?symbol=PAXGUSDT&interval=${tf}&limit=${limit}`);
-      if(r.ok){return (await r.json()).filter(k=>!goldClosed(k[0])).map(k=>({time:Math.floor(k[0]/1000)+TZ,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}))}}catch(e){}
+    try{const r=await fetch(`${h}/api/v3/klines?symbol=PAXGUSDT&interval=${tf}&limit=${limit}`+(end?`&endTime=${end}`:""));
+      if(r.ok)return await r.json();}catch(e){}
   } return null;
+}
+async function klines(limit){ const rows=await fetchRows(limit); return rows?rows.filter(k=>!goldClosed(k[0])).map(toC):null; }
+// initial load: keep going back in time until we have enough OPEN-market candles (weekend/break candles are hidden)
+async function klinesOpen(target){
+  let out=[],end=null;
+  for(let page=0;page<8&&out.length<target;page++){
+    const rows=await fetchRows(1000,end); if(!rows)return out.length?out.slice(-target).map(toC):null; if(!rows.length)break;
+    end=rows[0][0]-1; out=rows.filter(k=>!goldClosed(k[0])).concat(out);
+  }
+  return out.slice(-target).map(toC);
 }
 const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
 let raw=[];
@@ -95,7 +106,7 @@ function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?da
 const dpx=w=>w.pax&&w.raw!=null?w.raw-curOffset():w.px; // volume/VWAP levels move with the candles; option levels stay put
 function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
 function fit(){ const n=raw.length; if(n) chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
-async function loadCandles(){ const k=await klines(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
+async function loadCandles(){ const k=await klinesOpen(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
 async function tick(){ const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); }
 function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
 function drawLines(){
