@@ -21,6 +21,8 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Build levels
+        env:
+          OANDA_TOKEN: ${{ secrets.OANDA_TOKEN }}   # optional: exact OANDA price (see notes)
         run: python gld_levels.py --paxg --out docs --snap-dir snapshots
       - name: Save results
         run: |
