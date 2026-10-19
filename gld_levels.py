@@ -85,28 +85,50 @@ def quote_age_min(qtime, now):
     return max(0.0, (now.replace(tzinfo=None) - q).total_seconds() / 60) if q else None
 
 
+SPOT_SOURCE = "manual"
+
+
+def _spot_swissquote():
+    r = requests.get("https://forex-data-feed.swissquote.com/public-quote-feed/XAU/USD", timeout=10)
+    r.raise_for_status()
+    p = r.json()[0]["spreadProfilePrices"][0]
+    return (float(p["bid"]) + float(p["ask"])) / 2
+
+
+def _spot_yfinance():
+    import yfinance as yf
+    h = yf.Ticker("XAUUSD=X").history(period="1d", interval="1m")
+    return float(h["Close"].iloc[-1])
+
+
 def get_spot_gold(manual):
+    """Spot gold: --spot if given, else the first live source that agrees with PAXG to within $60 (sanity check)."""
+    global SPOT_SOURCE
     if manual:
+        SPOT_SOURCE = "manual"
         return float(manual)
+    paxg_last = None
     try:
-        import yfinance as yf
-        for tkr in ("XAUUSD=X", "GC=F"):
-            h = yf.Ticker(tkr).history(period="1d", interval="1m")
-            if len(h):
-                px = float(h["Close"].iloc[-1])
-                print(f"Spot gold from yfinance {tkr}: {px:.2f}")
-                if tkr == "GC=F":
-                    print("WARNING: GC=F is a futures price (premium to spot). Use --spot with your OANDA price.")
-                return px
-    except Exception as e:
-        print(f"yfinance failed: {e}", file=sys.stderr)
-    try:   # last resort: PAXG gold token price (no premium correction, so a few $ off)
         k = fetch_klines("PAXGUSDT", int((pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=2)).timestamp() * 1000), "5m")
-        px = float(k["close"].iloc[-1])
-        print(f"WARNING: spot taken from PAXG ({px:.2f}); it can sit $1-14 away from OANDA.")
-        return px
+        paxg_last = float(k["close"].iloc[-1])
     except Exception as e:
-        print(f"PAXG fallback failed: {e}", file=sys.stderr)
+        print(f"PAXG check failed: {e}", file=sys.stderr)
+    for name, fn in (("Swissquote", _spot_swissquote), ("Yahoo XAUUSD=X", _spot_yfinance)):
+        try:
+            px = fn()
+        except Exception as e:
+            print(f"{name} failed: {e}", file=sys.stderr)
+            continue
+        if paxg_last and abs(px - paxg_last) > 60:
+            print(f"{name} gave {px:.2f}, far from PAXG {paxg_last:.2f}: ignored", file=sys.stderr)
+            continue
+        SPOT_SOURCE = name
+        print(f"Spot gold from {name}: {px:.2f}")
+        return px
+    if paxg_last:
+        SPOT_SOURCE = "PAXG (no real gold price)"
+        print(f"WARNING: spot taken from PAXG ({paxg_last:.2f}); it can sit $1-20 away from OANDA.")
+        return paxg_last
     sys.exit("Could not get spot gold. Re-run with --spot <price>.")
 
 
@@ -1445,6 +1467,7 @@ def main():
                                      "Run it 2–3 more times, 10–15 minutes apart, to steady them. VWAPs are not affected.")
     else:
         out["ratio_warn"] = ("ok", f"Ratio steady: median of {n_read} fresh readings. Strike levels are good to roughly ±$5–10.")
+    out["spot_source"] = SPOT_SOURCE
     out["web_levels"] = build_pine(out, a.web_range, a.web_max, clusters_only=True)
     outdir = Path(a.out)
     outdir.mkdir(exist_ok=True)
