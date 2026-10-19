@@ -39,7 +39,7 @@ a{color:#6fd0ff}
 <div class="wrap">
   <div class="top">
     <div><span class="price" id="px">--</span> <span class="sub" id="pxsub">XAUUSD (PAXG-aligned)</span></div>
-    <div class="sub" id="age">loading levels…</div>
+    <div class="sub" id="age" style="text-align:right">loading levels…</div>
   </div>
   <div class="near" id="near"></div>
   <div id="warn"></div>
@@ -128,30 +128,47 @@ function buildTable(){
     tb.appendChild(tr);} if(!placed)nowRow();
 }
 function updTop(){
-  $("pxsub").textContent=goldClosed(Date.now())?"XAUUSD · gold market closed (showing Friday's last price)":"XAUUSD (PAXG-aligned)";
+  const off=curOffset(), src=manual!==null?"your Match OANDA":(data&&data.spot_source?"server run, "+data.spot_source:"server run");
+  $("pxsub").textContent=(goldClosed(Date.now())?"XAUUSD · gold market closed · ":"XAUUSD · ")+`candles shifted ${off>=0?"−":"+"}$${Math.abs(off).toFixed(2)} (${src})`;
   if(last==null)return; $("px").textContent=fmt(last);
   if(!data)return; const L=(data.web_levels||[]).slice();
   const up=L.filter(w=>dpx(w)>last).sort((a,b)=>dpx(a)-dpx(b))[0], dn=L.filter(w=>dpx(w)<=last).sort((a,b)=>dpx(b)-dpx(a))[0];
   const mk=(lab,w,c)=>w?`<div class="chip">${lab}: <b style="color:${c}">${fmt(dpx(w))}</b> ${w.names.join(" + ")} · $${Math.abs(dpx(w)-last).toFixed(1)}</div>`:"";
   $("near").innerHTML=mk("Next above",up,"var(--red)")+mk("Next below",dn,"var(--grn)");
 }
+// The server job runs every 15 min on weekdays 13:00-21:59 UTC (US hours), plus once at 12:00 UTC.
+const isRun=t=>{const d=new Date(t),w=d.getUTCDay(),h=d.getUTCHours(),m=d.getUTCMinutes();return w>=1&&w<=5&&((h>=13&&h<=21)||(h===12&&m===0));};
+const inWin=t=>{const d=new Date(t),w=d.getUTCDay(),h=d.getUTCHours();return w>=1&&w<=5&&h>=13&&h<=21;};
+const nextRun=t=>{let x=Math.ceil(t/900000)*900000;for(let i=0;i<700;i++){if(isRun(x))return x;x+=900000;}return null;};
+const hm=t=>new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+const dhm=t=>new Date(t).toLocaleDateString("en-US",{weekday:"short"})+" "+hm(t);
+const agoTxt=m=>m<90?m+" min ago":m<2880?Math.round(m/60)+" h ago":Math.round(m/1440)+" days ago";
+function renderStatus(){
+  if(!data){return;} const now=Date.now(), age=Math.round((now-data.generated_ms)/60000), sched=inWin(now);
+  let col,label;
+  if(!sched){col="#8b96b3";label="Paused (outside US hours)";}
+  else if(age<=25){col="#2ecc71";label="Auto-update working";}
+  else if(age<=50){col="#f5c542";label="Running late (GitHub can delay runs)";}
+  else{col="#ff5252";label="Auto-update may be stuck";}
+  const nx=nextRun(now); const d0=Date.UTC(2026,0,5,13,0), d1=Date.UTC(2026,0,5,21,45);
+  $("age").innerHTML=`<span style="color:${col}">●</span> ${label}<br>Last update: <b>${dhm(data.generated_ms)}</b> (${agoTxt(age)})<br>Runs every 15 min, Mon–Fri ${hm(d0)}–${hm(d1)} your time. Next: ${nx?dhm(nx):"–"}`;
+  const old=document.getElementById("oldwarn"); if(old)old.style.display=(sched&&age>60)?"block":"none";
+}
 async function loadLevels(){
   try{ const r=await fetch("levels.json?t="+Date.now(),{cache:"no-store"}); data=await r.json(); }catch(e){ $("age").textContent="levels file not found yet"; return; }
   const mins=Math.round((Date.now()-data.generated_ms)/60000);
-  const t=new Date(data.generated_ms);
-  $("age").textContent=`Levels from ${t.toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"})} (${mins<90?mins+" min":Math.round(mins/60)+" h"} ago)`;
   let w=""; const rw=data.ratio_warn;
-  if(mins>90) w+=`<div class="warn bad">These levels are ${Math.round(mins/60)} h old. Markets may be closed, or the auto-update may have stopped.</div>`;
+  w+=`<div id="oldwarn" class="warn bad" style="display:none">These levels are ${agoTxt(mins).replace(" ago","")} old, but the auto-update should be running now. It may be stuck: open your GitHub repository, Actions tab, and look for a red cross.</div>`;
   if(rw&&rw[0]!=="ok") w+=`<div class="warn">${rw[1]}</div>`;
   if(data.paxg&&Math.abs(data.paxg.premium)<0.005) w+=`<div class="warn">The server could not get the real gold price, so candles are raw PAXG prices and can differ from OANDA. Type your OANDA price in “Match OANDA” and press Set.</div>`;
-  $("warn").innerHTML=w; redraw();
+  $("warn").innerHTML=w; redraw(); renderStatus();
 }
 $("tf").onchange=()=>{tf=$("tf").value;store.set("tf",tf);loadCandles()};
 $("tg_opt").onclick=e=>{show.opt=!show.opt;e.target.classList.toggle("on",show.opt);drawLines()};
 $("tg_mark").onclick=e=>{show.mark=!show.mark;e.target.classList.toggle("on",show.mark);drawLines()};
 $("syncbtn").onclick=()=>{const v=parseFloat($("sync").value); if(!v||!raw.length)return; manual=raw[raw.length-1].close-v; store.set("manualOffset",manual); redraw();};
 $("syncreset").onclick=()=>{manual=null;store.del("manualOffset");$("sync").value="";redraw();};
-loadCandles(); loadLevels(); setInterval(tick,8000); setInterval(loadLevels,60000);
+loadCandles(); loadLevels(); setInterval(tick,8000); setInterval(loadLevels,60000); setInterval(renderStatus,30000);
 </script>
 </body>
 </html>
