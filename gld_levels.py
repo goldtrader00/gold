@@ -88,17 +88,23 @@ def quote_age_min(qtime, now):
 SPOT_SOURCE = "manual"
 
 
-def _spot_swissquote():
-    r = requests.get("https://forex-data-feed.swissquote.com/public-quote-feed/XAU/USD", timeout=10)
+def _spot_oanda():
+    """Exact OANDA XAU_USD price. Needs a free OANDA practice-account API token in the OANDA_TOKEN environment variable."""
+    import os
+    tok = os.environ.get("OANDA_TOKEN", "").strip()
+    if not tok:
+        raise RuntimeError("no OANDA_TOKEN set (optional)")
+    host = "api-fxtrade.oanda.com" if os.environ.get("OANDA_ENV", "practice").lower() == "live" else "api-fxpractice.oanda.com"
+    r = requests.get(f"https://{host}/v3/instruments/XAU_USD/candles", params={"count": 1, "price": "M", "granularity": "S5"},
+                     headers={"Authorization": f"Bearer {tok}"}, timeout=10)
     r.raise_for_status()
-    p = r.json()[0]["spreadProfilePrices"][0]
-    return (float(p["bid"]) + float(p["ask"])) / 2
+    return float(r.json()["candles"][-1]["mid"]["c"])
 
 
-def _spot_yfinance():
-    import yfinance as yf
-    h = yf.Ticker("XAUUSD=X").history(period="1d", interval="1m")
-    return float(h["Close"].iloc[-1])
+def _spot_goldapi():
+    r = requests.get("https://api.gold-api.com/price/XAU", timeout=10)
+    r.raise_for_status()
+    return float(r.json()["price"])
 
 
 def get_spot_gold(manual):
@@ -113,7 +119,7 @@ def get_spot_gold(manual):
         paxg_last = float(k["close"].iloc[-1])
     except Exception as e:
         print(f"PAXG check failed: {e}", file=sys.stderr)
-    for name, fn in (("Swissquote", _spot_swissquote), ("Yahoo XAUUSD=X", _spot_yfinance)):
+    for name, fn in (("OANDA", _spot_oanda), ("gold-api.com", _spot_goldapi)):
         try:
             px = fn()
         except Exception as e:
