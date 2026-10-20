@@ -1289,7 +1289,9 @@ def main():
     ap.add_argument("--paxg", action="store_true", help="VWAP W/M, flow and funds-zone prices from Binance PAXGUSDT")
     ap.add_argument("--paxg-symbol", default="PAXGUSDT")
     ap.add_argument("--max-dte", type=int, default=45, help="only expiries within N days (try 2 for near-term only)")
-    ap.add_argument("--band", type=float, default=0.20)
+    ap.add_argument("--band", type=float, default=0.15, help="keep strikes within +/- this fraction of the GLD price (0.15 matches the reference dashboard totals)")
+    ap.add_argument("--maxpain-mode", choices=["largest", "nearest"], default="largest",
+                    help="max pain of the expiry with the most open interest (usually the monthly) or of the nearest expiry")
     ap.add_argument("--rows", type=int, default=7, help="max option rows above and below price")
     ap.add_argument("--range", type=float, default=150.0, help="max $ distance from spot to list")
     ap.add_argument("--wall-range", type=float, default=250.0, help="max $ distance from spot for put/call wall search")
@@ -1411,8 +1413,13 @@ def main():
 
     flip_gld, net = gamma_flip(df, gld_px), net_gex(df, gld_px)
     cand = df[(df["open_interest"] > 0) & ((df["dte"] >= 1) | ((df["dte"] == 0) & live_today))]
-    near_exp = (cand if len(cand) else df)["expiry"].min()
-    mp_gld = max_pain(df[df["expiry"] == near_exp])
+    pool = cand if len(cand) else df
+    near_exp = pool["expiry"].min()
+    if a.maxpain_mode == "largest":
+        mp_exp = pool.groupby("expiry")["open_interest"].sum().idxmax()
+    else:
+        mp_exp = near_exp
+    mp_gld = max_pain(df[df["expiry"] == mp_exp])
     flip_x = flip_gld * ratio if flip_gld else None
     mp_x = mp_gld * ratio if mp_gld else None
 
@@ -1452,7 +1459,7 @@ def main():
         "gld_price": gld_px, "gld_quote": gld_quote, "spot_xauusd": round(spot_gold, 2), "ratio": ratio, "ratio_src": ratio_src,
         "net_gex_usd_per_1pct": net, "gamma_flip_xauusd": round(flip_x, 2) if flip_x else None,
         "gamma_regime": ("positive gamma (hedging dampens moves)" if net > 0 else "negative gamma (hedging amplifies moves)"),
-        "max_pain_xauusd": round(mp_x, 2) if mp_x else None, "max_pain_expiry": near_exp.strftime("%Y-%m-%d"),
+        "max_pain_xauusd": round(mp_x, 2) if mp_x else None, "max_pain_expiry": mp_exp.strftime("%Y-%m-%d"),
         "vwap_week": a.vwap_week, "vwap_month": a.vwap_month, "walls": walls, "cot": cot_sum, "paxg": paxg,
         "score": score, "delta_vs": delta_vs, "delta_status": delta_status, "summary": summ, "levels": levels, "chart": chart,
     }
@@ -1460,6 +1467,7 @@ def main():
     out["full_table"] = a.full_table
     out["show_profile"] = not a.no_profile
     out["generated_ms"] = int(now.timestamp() * 1000)
+    out["funds_debug"] = funds   # every funds zone computed, before the --range filter (for checking)
     if a.ratio:
         out["ratio_warn"] = ("ok", f"Ratio fixed by you at {ratio:.3f}.")
     elif n_read == 0 and ratio_src.startswith("default"):
