@@ -26,6 +26,8 @@ body{margin:0;color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,Segoe
 .chg.dn{background:#2e1215;color:var(--red)}
 .bias{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line)}
 .bias.dn{color:var(--red);border-color:#5a1d24;background:#1d0d10}.bias.up{color:var(--grn);border-color:#135a3c;background:#0b1d15}.bias.nt{color:var(--gold)}
+.live{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}.live.on{color:var(--grn);border-color:#135a3c}.live.on:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--grn);margin-right:6px;box-shadow:0 0 8px var(--grn)}
+#ov{position:absolute;inset:0;pointer-events:none;z-index:3}
 .status{margin-left:auto;text-align:right;font-size:12px;color:var(--mut)}
 .subbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
 button,select,input{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px}
@@ -116,6 +118,7 @@ svg text{font-family:"JetBrains Mono",monospace}
     <div class="brand"><div class="logo">Au</div><div><b>GOLD <span>LEVELS</span></b><small>FREE-DATA TERMINAL</small></div></div>
     <div class="quote"><span class="sym">XAUUSD</span><span class="px" id="px">--</span><span class="chg" id="chg">--</span></div>
     <div class="bias nt" id="biasPill">Smart-money bias --</div>
+    <div class="live" id="live">connecting…</div>
     <div class="status" id="age">loading levels…</div>
   </div>
   <div class="subbar">
@@ -130,10 +133,10 @@ svg text{font-family:"JetBrains Mono",monospace}
       <div class="card">
         <div class="ch"><h3 class="g">Price · Levels</h3>
           <div class="seg" id="tfseg"><button data-tf="1m">M1</button><button data-tf="5m">M5</button><button data-tf="15m">M15</button><button data-tf="1h">H1</button></div>
-          <div class="tog"><button id="tg_opt" class="on">Option levels</button><button id="tg_mark" class="on">Flip · VWAP · POC</button><button id="tg_mem" class="on">Memory</button></div>
+          <div class="tog"><button id="tg_opt" class="on">Zones</button><button id="tg_oi" class="on">OI</button><button id="tg_mark" class="on">Flip · pain</button><button id="tg_mem" class="on">Memory</button></div>
         </div>
         <div class="ohlc" id="ohlc">&nbsp;</div>
-        <div id="chartbox"><div id="chart"></div></div>
+        <div id="chartbox"><div id="chart"></div><canvas id="ov"></canvas></div>
       </div>
       <div class="card">
         <div class="ch"><h3>Zone ladder</h3><button id="ladall">Show all</button></div>
@@ -164,7 +167,7 @@ const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let data=null, brain=null, lines=[], last=null, offset=0, ladAll=false, manual=store.get("manualOffset")!==null?parseFloat(store.get("manualOffset")):null;
-let show={opt:true,mark:true,mem:store.get("showMem")!=="0"}, tf=store.get("tf")||"5m";
+let show={opt:true,oi:store.get("showOi")!=="0",mark:true,mem:store.get("showMem")!=="0"}, tf=store.get("tf")||"5m";
 const t12=d=>{const h=d.getUTCHours(),m=d.getUTCMinutes();return ((h%12)||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"AM":"PM");};
 const chart=LightweightCharts.createChart($("chart"),{
   layout:{background:{color:"#0d1322"},textColor:"#9aa6c4",fontFamily:"JetBrains Mono, monospace"},
@@ -178,7 +181,7 @@ const chart=LightweightCharts.createChart($("chart"),{
   rightPriceScale:{borderColor:"#1c2540"},crosshair:{mode:0},autoSize:true});
 const series=chart.addCandlestickSeries({
   autoscaleInfoProvider:orig=>{ const b=orig(); if(!b||!data||last==null)return b; let lo=b.priceRange.minValue,hi=b.priceRange.maxValue;
-    for(const w of data.web_levels||[]){ if(w.dotted?!show.mark:!show.opt)continue; const q=dpx(w);if(Math.abs(q-last)<=45){lo=Math.min(lo,q-2);hi=Math.max(hi,q+2);} }
+    if(show.opt&&brain) for(const z of brain.zones){ if(!show.mem&&z.tags.length===1&&z.tags[0]==="Memory")continue; const q=dpx(z); if(Math.abs(q-last)<=50){lo=Math.min(lo,q-4);hi=Math.max(hi,q+4);} }
     return {priceRange:{minValue:lo,maxValue:hi},margins:b.margins}; },upColor:"#16c784",downColor:"#ea3943",borderVisible:false,wickUpColor:"#16c784",wickDownColor:"#ea3943"});
 const TZ=-new Date().getTimezoneOffset()*60; // show your local time on the axis
 // Gold (OANDA) is closed from Friday 5 PM to Sunday 6 PM New York time, plus a daily break 5-6 PM New York (Mon-Thu). PAXG keeps trading, so we hide those candles.
@@ -204,24 +207,21 @@ async function klinesOpen(target){
 }
 const sh=(c,o)=>({time:c.time,open:c.open-o,high:c.high-o,low:c.low-o,close:c.close-o});
 let raw=[];
-function curOffset(){ if(manual!==null) return manual; return data&&data.paxg?data.paxg.premium:0; }
+function curOffset(){ if(manual!==null) return manual; const bp=brain&&brain.premium; if(bp&&bp.value!=null&&(!data||bp.ms>data.generated_ms))return bp.value; return data&&data.paxg?data.paxg.premium:0; }
+function offSrc(){ if(manual!==null)return "your Match OANDA"; const bp=brain&&brain.premium; if(bp&&bp.value!=null&&(!data||bp.ms>data.generated_ms))return `${bp.src}, ${agoTxt(Math.round((Date.now()-bp.ms)/60000))}`; return data&&data.spot_source?"server run, "+data.spot_source:"server run"; }
 const dpx=w=>w.pax&&w.raw!=null?w.raw-curOffset():w.px; // volume/VWAP/memory levels move with the candles; option levels stay put
-function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
+function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); drawOverlay(); }
 function fit(){ const n=raw.length; if(n) chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
 async function loadCandles(){ const k=await klinesOpen(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
-async function tick(){ if(!raw.length)return; const k=await klines(3); if(!k)return; for(const c of k){ if(c.time<raw[raw.length-1].time)continue; const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); renderAll(); }
+async function tick(){ if(!raw.length||Date.now()-wsAt<15000)return; const k=await klines(3); if(!k)return; for(const c of k){ if(c.time<raw[raw.length-1].time)continue; const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); renderAll(); }
 function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
 function drawLines(){
   clearLines(); if(!data)return;
-  for(const w of data.web_levels||[]){
-    if(w.dotted?!show.mark:!show.opt)continue;
-    lines.push(series.createPriceLine({price:dpx(w),color:w.col,lineWidth:w.dotted?1:2,lineStyle:w.dotted?1:0,axisLabelVisible:true,
-      title:w.names.join(" + ")+(w.oi?"  "+w.oi.replace(/^#\d+\s+/,""):"")}));
+  if(show.mark){
+    if(data.gamma_flip_xauusd) lines.push(series.createPriceLine({price:data.gamma_flip_xauusd,color:"#a855f7",lineWidth:1,lineStyle:2,lineVisible:true,axisLabelVisible:true,title:"γ FLIP"}));
+    if(data.max_pain_xauusd) lines.push(series.createPriceLine({price:data.max_pain_xauusd,color:"#f0c35a",lineWidth:1,lineStyle:2,lineVisible:true,axisLabelVisible:true,title:"MAX PAIN"}));
   }
-  if(show.mem&&brain&&brain.memory) for(const m of brain.memory){
-    lines.push(series.createPriceLine({price:m.raw-curOffset(),color:"#b99cff",lineWidth:1,lineStyle:2,axisLabelVisible:false,title:"Memory x"+m.count}));
-  }
-  buildTable(); renderAll();
+  buildTable(); renderAll(); drawOverlay();
 }
 function fmt(v){return v==null||isNaN(v)?"–":v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
 const int=v=>v==null?"–":Math.round(v).toLocaleString("en-US");
@@ -236,7 +236,7 @@ function buildTable(){
     tb.appendChild(tr);} if(!placed)nowRow();
 }
 function updTop(){
-  const off=curOffset(), src=manual!==null?"your Match OANDA":(data&&data.spot_source?"server run, "+data.spot_source:"server run");
+  const off=curOffset(), src=offSrc();
   $("pxsub").textContent=(goldClosed(Date.now())?"Gold market closed · ":"")+`candles: PAXG token shifted ${off>=0?"−":"+"}$${Math.abs(off).toFixed(2)} to XAUUSD (${src})`;
   if(last==null)return; $("px").textContent=fmt(last);
   const c=raw[raw.length-1]; if(c) $("ohlc").textContent=`XAUUSD · ${tf.toUpperCase()}   O ${fmt(c.open-off)}  H ${fmt(c.high-off)}  L ${fmt(c.low-off)}  C ${fmt(c.close-off)}`;
@@ -271,7 +271,7 @@ async function loadLevels(){
 async function loadBrain(){
   try{ const r=await fetch("brain.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok)throw 0; brain=await r.json(); }
   catch(e){ $("ladder").innerHTML=`<div class="nowrow">Brain file not found yet: it appears after the first “brain” run on GitHub (Actions tab).</div>`; return; }
-  drawLines();
+  redraw();
 }
 // ------------------------------------------------------------------ panels
 const SESS=[[0,7,"Asia"],[7,12,"London"],[12,17,"New York"],[17,24,"Late US"]];
@@ -432,18 +432,108 @@ function renderInsight(){
   $("ins").innerHTML=P.map(p=>`<p>${p}</p>`).join("")+`<div class="gauge"><span class="big ${g<=-35?'dn':g>=35?'up':'gd'}">${g>0?"+":""}${g}</span><span class="sub">${g<=-35?"BEARISH":g>=35?"BULLISH":"NEUTRAL"} · bias score −100…+100<br>(weekly COT + last US session options)</span></div>`;
   $("insAge").textContent=data.cot?`COT ${data.cot.as_of}`:"";
 }
+// ------------------------------------------------------------------ chart overlay: zone lines + left labels + OI histogram
+const KCOL={"Gamma flip":"#a855f7","Max pain":"#f0c35a","Call Wall":"#ea3943","Put Wall":"#16c784","VWAP M":"#4fe0d0","VWAP W":"#22d3ee","POC":"#ffa94d","Memory":"#b99cff","New PUT":"#ff6b81","New CALL":"#ff8a65","Call OI":"#ea3943","Put OI":"#16c784","Funds BUY":"#ff9ec7","Funds SELL":"#ff9ec7"};
+const KORD=Object.keys(KCOL);
+const mainKind=z=>KORD.find(k=>z.tags.includes(k))||z.tags[0];
+const hexA=(h,a)=>{const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;};
+const kfmt=v=>v>=1000?(v/1000).toFixed(v>=10000?0:1)+"K":String(v);
+const ov=$("ov"), og=ov.getContext("2d");
+let ovPending=false;
+function drawOverlay(){ if(ovPending)return; ovPending=true; requestAnimationFrame(()=>{ovPending=false;paintOverlay();}); }
+function paintOverlay(){
+  const box=$("chartbox"), W=box.clientWidth, H=box.clientHeight, dpr=window.devicePixelRatio||1;
+  if(ov.width!==Math.round(W*dpr)||ov.height!==Math.round(H*dpr)){ov.width=Math.round(W*dpr);ov.height=Math.round(H*dpr);}
+  og.setTransform(dpr,0,0,dpr,0,0); og.clearRect(0,0,W,H);
+  if(!data||last==null)return;
+  const plotW=W-chart.priceScale("right").width(), plotH=H-chart.timeScale().height();
+  og.save(); og.beginPath(); og.rect(0,0,plotW,plotH); og.clip();
+  // 1) OI per strike: bars growing left from the price scale (calls red on the upper half, puts green on the lower half)
+  if(show.oi&&data.chart&&data.chart.length){
+    const S=data.chart.map(s=>({c:s.c_oi||0,p:s.p_oi||0,y:series.priceToCoordinate(s.xau)})).filter(s=>s.y!=null&&s.y>-20&&s.y<plotH+20).sort((a,b)=>a.y-b.y);
+    if(S.length){
+      const mx=Math.max(1,...S.map(s=>Math.max(s.c,s.p))), maxW=Math.min(170,plotW*0.2);
+      let gap=40; for(let i=1;i<S.length;i++)gap=Math.min(gap,S[i].y-S[i-1].y);
+      const bh=Math.max(2,Math.min(14,gap-1)), half=bh/2;
+      const topC=S.map(s=>s.c).sort((a,b)=>b-a)[2]||0, topP=S.map(s=>s.p).sort((a,b)=>b-a)[2]||0;
+      og.font='700 10px "JetBrains Mono",monospace'; og.textAlign="right";
+      for(const s of S){
+        const cw=s.c/mx*maxW, pw=s.p/mx*maxW;
+        og.fillStyle="rgba(234,57,67,.45)"; og.fillRect(plotW-cw,s.y-half,cw,half);
+        og.fillStyle="rgba(22,199,132,.45)"; og.fillRect(plotW-pw,s.y,pw,half);
+        if(bh>=4&&s.c>0&&s.c>=topC){og.fillStyle="#ea3943";og.fillText("C "+kfmt(s.c),plotW-cw-4,s.y-1);}
+        if(bh>=4&&s.p>0&&s.p>=topP){og.fillStyle="#16c784";og.fillText("P "+kfmt(s.p),plotW-pw-4,s.y+9);}
+      }
+    }
+  }
+  // 2) one line per zone at its middle: solid + glow = BUY/SELL, dashed = CONSIDER, thin = no tag
+  const labels=[];
+  if(show.opt&&brain){
+    for(const z of brain.zones){
+      const isMem=z.tags.length===1&&z.tags[0]==="Memory"; if(isMem&&!show.mem)continue;
+      const v=zoneView(z), y=series.priceToCoordinate(v.p); if(y==null||y<-2||y>plotH+2)continue;
+      const col=KCOL[mainKind(z)]||"#9aa6c4", strong=v.cls==="sell"||v.cls==="buy", cons=v.cls==="csell"||v.cls==="cbuy";
+      og.strokeStyle=hexA(col,strong?1:cons?.85:.55); og.lineWidth=strong?1.6:1;
+      if(strong){og.shadowColor=col;og.shadowBlur=6;}
+      og.setLineDash(cons?[6,4]:isMem?[2,3]:[]);
+      const yy=Math.round(y)+.5; og.beginPath(); og.moveTo(0,yy); og.lineTo(plotW,yy); og.stroke();
+      og.setLineDash([]); og.shadowBlur=0;
+      const tagTxt=strong||cons?" · "+v.tag:"", bp=v.ready&&v.sc!=null?` · 🧠 ${v.sc}%`:"";
+      labels.push({y,col,sig:v.cls,text:`${z.names.join(" + ")}${tagTxt}${bp} · ${fmt(v.p)}`,pri:strong?3:cons?2:Math.abs(v.d)<30?1:0,d:Math.abs(v.d)});
+    }
+  }
+  // labels on the left, strongest / nearest first, never overlapping
+  og.font='600 10.5px Inter,sans-serif'; og.textAlign="left";
+  const used=[];
+  labels.sort((a,b)=>b.pri-a.pri||a.d-b.d);
+  for(const L of labels){
+    if(L.y<9||L.y>plotH-9||used.some(u=>Math.abs(u-L.y)<16))continue; used.push(L.y);
+    const tw=og.measureText(L.text).width+14;
+    og.fillStyle="rgba(4,6,11,.85)"; og.beginPath(); og.roundRect?og.roundRect(8,L.y-8.5,tw,17,5):og.rect(8,L.y-8.5,tw,17); og.fill();
+    og.strokeStyle=hexA(L.col,.75); og.lineWidth=1; og.stroke();
+    og.fillStyle=L.sig==="sell"?"#ff6b74":L.sig==="buy"?"#3ee09f":"#e8edf6"; og.fillText(L.text,15,L.y+4);
+  }
+  og.restore();
+}
+chart.timeScale().subscribeVisibleLogicalRangeChange(drawOverlay);
+chart.subscribeCrosshairMove(drawOverlay);
+new ResizeObserver(drawOverlay).observe($("chartbox"));
+["wheel","pointermove","pointerup","touchmove"].forEach(ev=>$("chartbox").addEventListener(ev,drawOverlay,{passive:true}));
+// ------------------------------------------------------------------ live PAXG stream (tick by tick, free Binance market-data WebSocket)
+const WS_HOSTS=["wss://data-stream.binance.vision","wss://stream.binance.com:9443"];
+let ws=null, wsHost=0, wsAt=0, wsTf=null, lastPaint=0;
+function setLive(){ const on=Date.now()-wsAt<15000; $("live").className="live"+(on?" on":""); $("live").textContent=on?"LIVE":"polling"; }
+function applyBar(c){ if(!raw.length)return; const lt=raw[raw.length-1].time; if(c.time<lt)return; if(c.time===lt)raw[raw.length-1]=c; else raw.push(c);
+  series.update(sh(c,offset)); last=c.close-offset; updTop(); drawOverlay();
+  const now=Date.now(); if(now-lastPaint>1000){lastPaint=now;renderAll();} }
+function connectWs(){
+  try{ if(ws){ws.onclose=null;ws.close();} }catch(e){}
+  wsTf=tf; const url=`${WS_HOSTS[wsHost]}/stream?streams=paxgusdt@kline_${tf}/paxgusdt@aggTrade`;
+  try{ ws=new WebSocket(url); }catch(e){ wsHost=(wsHost+1)%WS_HOSTS.length; setTimeout(connectWs,3000); return; }
+  const opened=Date.now();
+  ws.onmessage=m=>{ let j; try{j=JSON.parse(m.data);}catch(e){return;} const d=j.data||j; wsAt=Date.now();
+    if(d.e==="kline"){ const k=d.k; if(goldClosed(k.t))return; applyBar({time:Math.floor(k.t/1000)+TZ,open:+k.o,high:+k.h,low:+k.l,close:+k.c}); }
+    else if(d.e==="aggTrade"&&raw.length){ if(goldClosed(d.T))return; const b={...raw[raw.length-1]}, p=+d.p, bt=(b.time-TZ)*1000, step={"1m":6e4,"5m":3e5,"15m":9e5,"1h":36e5}[tf];
+      if(d.T>=bt&&d.T<bt+step){ b.close=p; b.high=Math.max(b.high,p); b.low=Math.min(b.low,p); applyBar(b); } }
+    setLive(); };
+  ws.onclose=()=>{ if(Date.now()-opened<5000) wsHost=(wsHost+1)%WS_HOSTS.length; setTimeout(connectWs,3000); setLive(); };
+  ws.onerror=()=>{ try{ws.close();}catch(e){} };
+}
+setInterval(setLive,5000);
 // ------------------------------------------------------------------ controls
 function setTfButtons(){ document.querySelectorAll("#tfseg button").forEach(b=>b.classList.toggle("on",b.dataset.tf===tf)); }
-$("tfseg").onclick=e=>{const b=e.target.closest("button[data-tf]"); if(!b)return; tf=b.dataset.tf; store.set("tf",tf); setTfButtons(); loadCandles();};
-$("tg_opt").onclick=e=>{show.opt=!show.opt;e.target.classList.toggle("on",show.opt);drawLines()};
+$("tfseg").onclick=e=>{const b=e.target.closest("button[data-tf]"); if(!b)return; tf=b.dataset.tf; store.set("tf",tf); setTfButtons(); loadCandles().then(connectWs);};
+$("tg_opt").onclick=e=>{show.opt=!show.opt;e.target.classList.toggle("on",show.opt);drawLines();series.applyOptions({});}
 $("tg_mark").onclick=e=>{show.mark=!show.mark;e.target.classList.toggle("on",show.mark);drawLines()};
 $("tg_mem").classList.toggle("on",show.mem);
+$("tg_oi").classList.toggle("on",show.oi);
+$("tg_oi").onclick=e=>{show.oi=!show.oi;store.set("showOi",show.oi?"1":"0");e.target.classList.toggle("on",show.oi);drawOverlay()};
 $("tg_mem").onclick=e=>{show.mem=!show.mem;store.set("showMem",show.mem?"1":"0");e.target.classList.toggle("on",show.mem);drawLines()};
 $("ladall").onclick=()=>{ladAll=!ladAll;renderAll();};
 $("syncbtn").onclick=()=>{const v=parseFloat($("sync").value); if(!v||!raw.length)return; manual=raw[raw.length-1].close-v; store.set("manualOffset",manual); redraw();};
 $("syncreset").onclick=()=>{manual=null;store.del("manualOffset");$("sync").value="";redraw();};
 setTfButtons();
-loadCandles(); loadLevels(); loadBrain();
+loadCandles().then(connectWs); loadLevels(); loadBrain();
 setInterval(tick,8000); setInterval(loadLevels,60000); setInterval(loadBrain,60000); setInterval(renderStatus,30000);
 </script>
 </body>
