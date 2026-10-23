@@ -27,7 +27,7 @@ body{margin:0;color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,Segoe
 .bias{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line)}
 .bias.dn{color:var(--red);border-color:#5a1d24;background:#1d0d10}.bias.up{color:var(--grn);border-color:#135a3c;background:#0b1d15}.bias.nt{color:var(--gold)}
 .live{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}.live.on{color:var(--grn);border-color:#135a3c}.live.on:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--grn);margin-right:6px;box-shadow:0 0 8px var(--grn)}
-#ov{position:absolute;inset:0;pointer-events:none;z-index:3}
+#ov{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
 .status{margin-left:auto;text-align:right;font-size:12px;color:var(--mut)}
 .subbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
 button,select,input{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px}
@@ -444,6 +444,7 @@ function drawOverlay(){ if(ovPending)return; ovPending=true; requestAnimationFra
 function paintOverlay(){
   const box=$("chartbox"), W=box.clientWidth, H=box.clientHeight, dpr=window.devicePixelRatio||1;
   if(ov.width!==Math.round(W*dpr)||ov.height!==Math.round(H*dpr)){ov.width=Math.round(W*dpr);ov.height=Math.round(H*dpr);}
+  ov.style.width=W+"px"; ov.style.height=H+"px";   // keep CSS size = chart size on high-DPI screens
   og.setTransform(dpr,0,0,dpr,0,0); og.clearRect(0,0,W,H);
   if(!data||last==null)return;
   const plotW=W-chart.priceScale("right").width(), plotH=H-chart.timeScale().height();
@@ -483,15 +484,15 @@ function paintOverlay(){
     }
   }
   // labels on the left, strongest / nearest first, never overlapping
-  og.font='600 10.5px Inter,sans-serif'; og.textAlign="left";
+  og.font='600 9.5px Inter,sans-serif'; og.textAlign="left";
   const used=[];
   labels.sort((a,b)=>b.pri-a.pri||a.d-b.d);
   for(const L of labels){
-    if(L.y<9||L.y>plotH-9||used.some(u=>Math.abs(u-L.y)<16))continue; used.push(L.y);
-    const tw=og.measureText(L.text).width+14;
-    og.fillStyle="rgba(4,6,11,.85)"; og.beginPath(); og.roundRect?og.roundRect(8,L.y-8.5,tw,17,5):og.rect(8,L.y-8.5,tw,17); og.fill();
+    if(L.y<7||L.y>plotH-7||used.some(u=>Math.abs(u-L.y)<13))continue; used.push(L.y);
+    const tw=og.measureText(L.text).width+10;
+    og.fillStyle="rgba(4,6,11,.85)"; og.beginPath(); og.roundRect?og.roundRect(6,L.y-6.5,tw,13,4):og.rect(6,L.y-6.5,tw,13); og.fill();
     og.strokeStyle=hexA(L.col,.75); og.lineWidth=1; og.stroke();
-    og.fillStyle=L.sig==="sell"?"#ff6b74":L.sig==="buy"?"#3ee09f":"#e8edf6"; og.fillText(L.text,15,L.y+4);
+    og.fillStyle=L.sig==="sell"?"#ff6b74":L.sig==="buy"?"#3ee09f":"#e8edf6"; og.fillText(L.text,11,L.y+3.5);
   }
   og.restore();
 }
