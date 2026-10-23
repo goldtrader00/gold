@@ -232,7 +232,13 @@ def fetch_cot(dataset=COT_DATASET, weeks=70):
         "date": pd.to_datetime(d["report_date_as_yyyy_mm_dd"]),
         "mm_net": col("m_money", "long") - col("m_money", "short"),
         "swap_net": col("swap", "long") - col("swap", "short"),
+        "mm_long": col("m_money", "long"), "mm_short": col("m_money", "short"),
+        "swap_long": col("swap", "long"), "swap_short": col("swap", "short"),
     })
+    try:
+        out["oi"] = pd.to_numeric(d["open_interest_all"], errors="coerce")
+    except Exception:
+        pass
     return out.sort_values("date").reset_index(drop=True)
 
 
@@ -245,8 +251,22 @@ def cot_summary(cot, spot):
         return {"net": int(s_.iloc[-1]), "wk_chg": int(s_.iloc[-1] - s_.iloc[-2]),
                 "idx": round(float((s_.iloc[-1] - lo) / (hi - lo) * 100)) if hi > lo else 50,
                 "pct52": round(float((w_ <= s_.iloc[-1]).mean() * 100)),
-                "notional": float(s_.iloc[-1] * 100 * spot)}
-    return {"as_of": cot["date"].iloc[-1].strftime("%d/%m"), "swap": blk("swap_net"), "mm": blk("mm_net"),
+                "notional": float(s_.iloc[-1] * 100 * spot),
+                "chg4": int(s_.iloc[-1] - s_.iloc[-5]) if len(s_) >= 5 else None}
+
+    def legs(pre):   # long / short totals and their weekly change (for the Funds / Banks cards)
+        try:
+            L, S = cot[pre + "_long"].dropna(), cot[pre + "_short"].dropna()
+            return {"long": int(L.iloc[-1]), "short": int(S.iloc[-1]),
+                    "long_chg": int(L.iloc[-1] - L.iloc[-2]), "short_chg": int(S.iloc[-1] - S.iloc[-2])}
+        except Exception:
+            return {}
+    sw, mm = blk("swap_net"), blk("mm_net")
+    sw.update(legs("swap"))
+    mm.update(legs("mm"))
+    oi = int(cot["oi"].dropna().iloc[-1]) if "oi" in cot and cot["oi"].notna().any() else None
+    return {"as_of": cot["date"].iloc[-1].strftime("%d/%m"), "report_date": cot["date"].iloc[-1].strftime("%Y-%m-%d"),
+            "oi": oi, "price_used": float(spot), "swap": sw, "mm": mm,
             "series": [[d.strftime("%Y-%m-%d"), float(a), float(b)]
                        for d, a, b in zip(last52["date"], last52["swap_net"], last52["mm_net"])]}
 

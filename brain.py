@@ -7,8 +7,9 @@ What it does (every run, about every 15 minutes, 24 hours a day on weekdays):
   2. Touch tracking: replays PAXG 1-minute candles since the last run against the levels that were
      on the site AT THAT TIME (levels.json as it was then), so nothing is judged with hindsight.
        touch  = price comes into a level's zone (level +/- ZONE) from outside
-       HELD   = price then moves TARGET dollars past the near edge, away from the level (a bounce)
-       BROKE  = price moves TARGET dollars past the far edge first (went through)
+       HELD   = from the touch point (the zone's near edge) price bounces TARGET dollars away
+       BROKE  = price goes TARGET dollars the other way first (all the way through the zone)
+       Both distances are equal, so a level with no real effect would score about 50%.
        neither within 4 hours = timeout (not counted)
   3. Scores every current level (Brain %) from the real touch results, by source (Put OI, Memory,
      VWAP ...), session, and whether the touch is with or against the 4-hour trend.
@@ -33,13 +34,13 @@ import numpy as np
 import pandas as pd
 import requests
 
-VERSION = 1
+VERSION = 2   # 2: symmetric hold/break measured from the touch point (v1 favoured 'held')
 BINANCE = ["https://data-api.binance.vision", "https://api.binance.com"]
 SYMBOL = "PAXGUSDT"
 NY = ZoneInfo("America/New_York")
 
 ZONE = 3.0          # a level's zone = level +/- $3
-TARGET = 5.0        # bounce / break distance beyond the zone edge
+TARGET = 6.0        # from the touch point (zone edge): +$6 = held, -$6 (= right through the zone) = broke
 TIMEOUT_MIN = 240   # unresolved after 4 hours -> not counted
 HALF_LIFE_D = 30.0  # older touches count less (weight halves every 30 days)
 MERGE = 3.0         # levels closer than $3 are treated as one zone
@@ -285,8 +286,9 @@ def replay(bars, schedule, h1, trend_ser, state):
         still = []
         for p in pend:
             lvl, s = p["L"], p["side"]
-            up_hit = H[i] >= lvl + ZONE + TARGET
-            dn_hit = L[i] <= lvl - ZONE - TARGET
+            e = lvl + ZONE if s == "S" else lvl - ZONE        # near edge = where the touch happened
+            up_hit = H[i] >= e + TARGET                       # same distance both ways from the touch,
+            dn_hit = L[i] <= e - TARGET                       # so pure chance = 50%
             if s == "S":
                 p["mfe"] = max(p["mfe"], H[i] - (lvl + ZONE))
                 p["mae"] = max(p["mae"], (lvl + ZONE) - L[i])
@@ -448,7 +450,7 @@ def insight(st, day, cur_trend, cur_sess):
         return ["The Brain is still collecting its first level touches. Scores appear after about "
                 f"{TAG_MIN_N} finished touches."]
     lines.append(f"Levels held {round(o['raw'] * 100)}% of {o['n']} finished touches "
-                 f"(bounce ${TARGET:.0f} before breaking ${TARGET:.0f}; a coin flip would be 50%).")
+                 f"(bounced ${TARGET:.0f} before going ${TARGET:.0f} through; pure chance would be about 50%).")
     if o["n"] < TAG_MIN_N:
         lines.append(f"Still learning: BUY/SELL tags switch on after {TAG_MIN_N} results.")
     tg = [(NICE.get(k, k), v) for k, v in st["tag"].items() if v["n"] >= 8]
@@ -467,6 +469,41 @@ def insight(st, day, cur_trend, cur_sess):
         lines.append(f"4h trend right now: {cur_trend.upper()} - support bounces are 'with trend' in an uptrend, "
                      f"resistance rejections in a downtrend.")
     return lines
+
+
+def what_matters(st):
+    """Which conditions changed the hold rate most (vs the overall rate), biggest first."""
+    p0 = st["overall"]["p"]
+    rows = []
+    for k, v in st["tag"].items():
+        if v["n"] >= 8:
+            rows.append((NICE.get(k, k), v["p"] - p0, v["n"]))
+    for k, v in st["trend"].items():
+        if v["n"] >= 8 and k != "flat":
+            rows.append((f"{k} 4h trend", v["p"] - p0, v["n"]))
+    for k, v in st["side"].items():
+        if v["n"] >= 8:
+            rows.append(("support zones" if k == "S" else "resistance zones", v["p"] - p0, v["n"]))
+    for k, v in st["sess"].items():
+        if v["n"] >= 8:
+            rows.append((f"{k} session", v["p"] - p0, v["n"]))
+    rows.sort(key=lambda r: -abs(r[1]))
+    return [{"name": n, "pct": round(d * 100), "n": c} for n, d, c in rows[:8] if abs(d) >= 0.01]
+
+
+def lesson(touches):
+    """A plain sentence about the most recent broken levels."""
+    br = [r for r in touches if r["res"] == "B"][-6:]
+    if len(br) < 3:
+        return None
+    ag = sum(1 for r in br if r["trend"] == "against")
+    days = sorted({datetime.fromtimestamp(r["t"] / 1000, timezone.utc).strftime("%d/%m") for r in br})
+    if ag >= len(br) - 1:
+        return f"{ag} of the last {len(br)} broken levels ({', '.join(days[-2:])}) were traded against the 4h trend."
+    sess = pd.Series([r["sess"] for r in br]).value_counts()
+    if sess.iloc[0] >= len(br) - 1:
+        return f"{sess.iloc[0]} of the last {len(br)} broken levels happened in the {sess.index[0]} session."
+    return f"Last {len(br)} broken levels: {ag} against the 4h trend, {len(br) - ag} with it."
 
 
 def stats_out(st):
@@ -551,6 +588,7 @@ def main():
                    for r in state["touches"][-25:]][::-1],
         "pending": len(state["pending"]),
         "insight": insight(st, day, cur_trend, cur_sess),
+        "what_matters": what_matters(st), "lesson": lesson(state["touches"]),
         "levels_snapshot": lv_now,
         "state": state,
     }
