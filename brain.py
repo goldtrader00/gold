@@ -114,6 +114,36 @@ def fetch_klines(interval, start_ms, end_ms=None, candles_file=None):
     raise RuntimeError(f"Binance klines failed: {err}")
 
 
+def live_premium(paxg_last):
+    """PAXG minus real spot gold right now (OANDA if a token is set, else gold-api.com), so the page can
+    shift the live PAXG candles to XAUUSD with a premium that is at most ~15 minutes old, day and night."""
+    import os
+    srcs = []
+    tok = os.environ.get("OANDA_TOKEN", "").strip()
+    if tok:
+        def oanda():
+            r = requests.get("https://api-fxpractice.oanda.com/v3/instruments/XAU_USD/candles",
+                             params={"count": 1, "price": "M", "granularity": "S5"},
+                             headers={"Authorization": f"Bearer {tok}"}, timeout=10)
+            r.raise_for_status()
+            return float(r.json()["candles"][-1]["mid"]["c"])
+        srcs.append(("OANDA", oanda))
+
+    def goldapi():
+        r = requests.get("https://api.gold-api.com/price/XAU", timeout=10)
+        r.raise_for_status()
+        return float(r.json()["price"])
+    srcs.append(("gold-api.com", goldapi))
+    for name, fn in srcs:
+        try:
+            px = fn()
+            if abs(px - paxg_last) <= 60:
+                return {"value": round(paxg_last - px, 2), "spot": px, "src": name, "ms": now_ms()}
+        except Exception as e:
+            print(f"spot from {name} failed: {e}")
+    return None
+
+
 def git_snapshots(path="docs/levels.json"):
     """Every committed version of levels.json (oldest first) -> [(generated_ms, dict)]."""
     try:
@@ -589,6 +619,7 @@ def main():
         "pending": len(state["pending"]),
         "insight": insight(st, day, cur_trend, cur_sess),
         "what_matters": what_matters(st), "lesson": lesson(state["touches"]),
+        "premium": None if a.candles_file else live_premium(last_raw),
         "levels_snapshot": lv_now,
         "state": state,
     }
