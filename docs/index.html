@@ -33,6 +33,37 @@ input{width:90px}
 a{color:#6fd0ff}
 .note{color:var(--mut);font-size:12px;margin-top:14px}
 @media(max-width:600px){.price{font-size:22px}#tbl th:nth-child(4),#tbl td:nth-child(4){display:none}}
+/* brain: day meter, insight, zone ladder, stats */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.card h3{margin:0 0 6px;font-size:12px;letter-spacing:.06em;color:var(--mut);font-weight:600;text-transform:uppercase}
+.meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.meter i{display:block;height:100%;background:var(--amb)}
+.big{font-size:18px;font-weight:700}
+.insight p{margin:0 0 5px;font-size:13px}
+.sect{display:flex;justify-content:space-between;align-items:center;margin:18px 0 6px;gap:8px;flex-wrap:wrap}
+.sect h2{font-size:15px;margin:0}
+#ladder{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.zrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 12px;border-bottom:1px solid var(--line);border-left:3px solid transparent}
+.zrow:last-child{border-bottom:0}
+.zrow.res{border-left-color:var(--red)}.zrow.sup{border-left-color:var(--grn)}.zrow.in{border-left-color:var(--amb);background:var(--warnbg)}
+.zl{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.zl b{font-variant-numeric:tabular-nums}
+.zr{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.zf{grid-column:1/-1;color:var(--mut);font-size:12px}
+.ztag{font-size:11px;font-weight:700;border-radius:5px;padding:2px 6px;border:1px solid var(--line)}
+.ztag.sell{background:var(--red);color:#fff;border-color:var(--red)}.ztag.buy{background:var(--grn);color:#06210f;border-color:var(--grn)}
+.ztag.csell{color:var(--red);border-color:var(--red)}.ztag.cbuy{color:var(--grn);border-color:var(--grn)}
+.ztag.res{color:var(--red)}.ztag.sup{color:var(--grn)}.ztag.in{color:var(--amb);border-color:var(--amb)}
+.pill{font-size:11px;border-radius:5px;padding:1px 6px;background:var(--bg);border:1px solid var(--line)}
+.bp{font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;border:1px solid #6d5bd0;color:#b9a8ff}
+.band{color:var(--mut);font-size:12px;font-variant-numeric:tabular-nums}
+.nowrow{background:var(--nowbg);padding:7px 12px;font-weight:700;border-bottom:1px solid var(--line)}
+.st{width:100%;border-collapse:collapse;font-size:13px}
+.st td{padding:3px 0;border-bottom:1px solid var(--line)}
+.st td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:8px}
+.hb{display:inline-block;height:6px;border-radius:3px;background:var(--grn);vertical-align:middle;margin-left:6px}
+.rules{color:var(--mut);font-size:12px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -47,9 +78,19 @@ a{color:#6fd0ff}
     <select id="tf"><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option><option value="1h">1h</option></select>
     <button id="tg_opt" class="on">Option levels</button>
     <button id="tg_mark" class="on">Flip / pain / VWAP / POC</button>
+    <button id="tg_mem" class="on">Memory levels</button>
     <span class="sub">Match OANDA:</span><input id="sync" inputmode="decimal" placeholder="OANDA price"><button id="syncbtn">Set</button><button id="syncreset">Auto</button>
   </div>
   <div id="chartbox"><div id="chart"></div></div>
+  <div class="cards">
+    <div class="card"><h3>Today</h3><div id="day">loading…</div></div>
+    <div class="card insight"><h3>Brain says</h3><div id="insight">loading…</div></div>
+  </div>
+  <div class="sect"><h2>Zone ladder</h2><button id="ladall">Show all</button></div>
+  <div id="ladder"><div class="nowrow">loading brain…</div></div>
+  <div class="sect"><h2>Brain statistics</h2><span class="sub" id="bage"></span></div>
+  <div class="cards" id="stats"></div>
+  <div class="sect"><h2>All levels</h2></div>
   <table id="tbl"><thead><tr><th>Level</th><th class="n" style="text-align:right">Price</th><th class="n" style="text-align:right">From price</th><th>Contracts (calls / puts)</th></tr></thead><tbody></tbody></table>
   <div class="note">Candles come from the PAXG gold token on Binance, shifted to XAUUSD terms, so they can differ from OANDA by a few dollars: use “Match OANDA” to line them up. Levels refresh about every 15 minutes during US hours. <a href="dashboard.html">Full table dashboard</a></div>
 </div>
@@ -60,7 +101,8 @@ if(typeof LightweightCharts==="undefined"){document.getElementById("age").textCo
 const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 let data=null, lines=[], last=null, offset=0, manual=store.get("manualOffset")!==null?parseFloat(store.get("manualOffset")):null;
-let show={opt:true,mark:true}, tf=store.get("tf")||"5m"; $("tf").value=tf;
+let brain=null, ladAll=false;
+let show={opt:true,mark:true,mem:store.get("showMem")!=="0"}, tf=store.get("tf")||"5m"; $("tf").value=tf;
 const dark=!matchMedia("(prefers-color-scheme:light)").matches;
 const t12=d=>{const h=d.getUTCHours(),m=d.getUTCMinutes();return ((h%12)||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"AM":"PM");};
 const chart=LightweightCharts.createChart($("chart"),{
@@ -107,7 +149,7 @@ const dpx=w=>w.pax&&w.raw!=null?w.raw-curOffset():w.px; // volume/VWAP levels mo
 function redraw(){ offset=curOffset(); if(raw.length){series.setData(raw.map(c=>sh(c,offset))); last=raw[raw.length-1].close-offset; updTop();} drawLines(); }
 function fit(){ const n=raw.length; if(n) chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6}); }
 async function loadCandles(){ const k=await klinesOpen(500); if(!k){$("pxsub").textContent="price feed unreachable";return;} raw=k; redraw(); fit(); setTimeout(fit,200); setTimeout(fit,800); }
-async function tick(){ const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); }
+async function tick(){ if(!raw.length)return; const k=await klines(3); if(!k)return; for(const c of k){ const i=raw.findIndex(x=>x.time===c.time); if(i>=0)raw[i]=c; else raw.push(c); series.update(sh(c,offset)); } last=raw[raw.length-1].close-offset; updTop(); renderBrain(); }
 function clearLines(){ for(const l of lines)series.removePriceLine(l); lines=[]; }
 function drawLines(){
   clearLines(); if(!data)return;
@@ -116,7 +158,10 @@ function drawLines(){
     lines.push(series.createPriceLine({price:dpx(w),color:w.col,lineWidth:w.dotted?1:2,lineStyle:w.dotted?1:0,axisLabelVisible:true,
       title:w.names.join(" + ")+(w.oi?"  "+w.oi.replace(/^#\d+\s+/,""):"")}));
   }
-  buildTable();
+  if(show.mem&&brain&&brain.memory) for(const m of brain.memory){
+    lines.push(series.createPriceLine({price:m.raw-curOffset(),color:dark?"#c9b8ff":"#6a4fd0",lineWidth:1,lineStyle:2,axisLabelVisible:false,title:"Memory x"+m.count}));
+  }
+  buildTable(); renderBrain();
 }
 function fmt(v){return v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function buildTable(){
@@ -163,6 +208,82 @@ async function loadLevels(){
   if(data.paxg&&Math.abs(data.paxg.premium)<0.005) w+=`<div class="warn">The server could not get the real gold price, so candles are raw PAXG prices and can differ from OANDA. Type your OANDA price in “Match OANDA” and press Set.</div>`;
   $("warn").innerHTML=w; redraw(); renderStatus();
 }
+// ------------------------------------------------------------------ Brain (brain.json, updated every 15 min, 24h on weekdays)
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SESS=[[0,7,"Asia"],[7,12,"London"],[12,17,"New York"],[17,24,"Late US"]];
+const sessLabel=n=>{const s=SESS.find(x=>x[2]===n); if(!s)return n; const d0=Date.UTC(2026,0,5,s[0]),d1=Date.UTC(2026,0,5,s[1]); return `${n} (${hm(d0)}–${hm(d1)})`;};
+async function loadBrain(){
+  try{ const r=await fetch("brain.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok)throw 0; brain=await r.json(); }
+  catch(e){ $("ladder").innerHTML=`<div class="nowrow">Brain file not found yet: it appears after the first “brain” run on GitHub (Actions tab).</div>`; return; }
+  drawLines();
+}
+function zoneView(z){
+  const p=dpx(z), ref=last, d=p-ref, ZN=brain.rules.zone;
+  const pos=Math.abs(d)<=ZN?"in":(d>0?"above":"below");
+  const side=pos==="above"?"R":"S", sc=side==="R"?z.sR:z.sS, fac=side==="R"?z.fR:z.fS;
+  let tag,cls;
+  if(pos==="in"){tag="IN ZONE";cls="in";}
+  else if(!brain.rules.ready){tag=side==="R"?"RESISTANCE":"SUPPORT";cls=side==="R"?"res":"sup";}
+  else if(sc>=brain.rules.tag_pct){tag=side==="R"?"SELL":"BUY";cls=side==="R"?"sell":"buy";}
+  else if(sc>=brain.rules.consider_pct){tag=side==="R"?"CONSIDER SELL":"CONSIDER BUY";cls=side==="R"?"csell":"cbuy";}
+  else{tag=side==="R"?"RESISTANCE":"SUPPORT";cls=side==="R"?"res":"sup";}
+  return {p,d,pos,side,sc,fac,tag,cls};
+}
+function renderBrain(){
+  if(!brain||last==null)return;
+  const ZN=brain.rules.zone;
+  // ---- zone ladder
+  let zs=brain.zones.map(z=>({z,v:zoneView(z)})).sort((a,b)=>b.v.p-a.v.p);
+  const near=zs.filter(x=>Math.abs(x.v.d)<=80);
+  const shown=ladAll||near.length<4?zs:near;
+  let h="", placed=false;
+  const nowRow=()=>{h+=`<div class="nowrow">Price now ${fmt(last)} · 4h trend ${esc((brain.trend_4h||"–").toUpperCase())}</div>`;placed=true;};
+  for(const {z,v} of shown){
+    if(!placed&&v.p<last)nowRow();
+    const rowc=v.pos==="in"?"in":(v.pos==="above"?"res":"sup");
+    const pills=z.names.map(n=>`<span class="pill">${esc(n)}${n==="Memory level"&&z.mem_count?" x"+z.mem_count:""}</span>`).join("");
+    const bp=brain.rules.ready?`<span class="bp">Brain ${v.sc}%</span>`:"";
+    const dist=v.pos==="in"?`<span style="color:var(--amb)">◆ in zone</span>`:`<span style="color:${v.d>0?'var(--red)':'var(--grn)'}">${v.d>0?"▲":"▼"} $${Math.abs(v.d).toFixed(2)}</span>`;
+    const oi=(z.calls||z.puts)?` · calls ${(z.calls||0).toLocaleString()} / puts ${(z.puts||0).toLocaleString()}`:"";
+    const fx=(v.fac||[]).filter(f=>!String(f[0]).startsWith("held")).map(f=>`${esc(f[0])} <span style="color:${f[1]>0?'var(--grn)':'var(--red)'}">${f[1]>0?"+":"−"}${Math.abs(f[1])}%</span>`).join(" · ");
+    const held=z.n?`held ${z.held}/${z.n} here`:"no touches yet";
+    h+=`<div class="zrow ${rowc}"><div class="zl"><span class="ztag ${v.cls}">${v.tag}</span><b>${fmt(v.p)}</b><span class="band">${fmt(v.p-ZN)}–${fmt(v.p+ZN)}</span>${pills}${bp}</div>
+      <div class="zr">${dist}</div><div class="zf">${held}${oi}${fx?" · "+fx:""}</div></div>`;
+  }
+  if(!placed)nowRow();
+  $("ladder").innerHTML=h;
+  $("ladall").textContent=ladAll?"Show near price only":"Show all";
+  // ---- today
+  const dy=brain.day||{}, off=curOffset();
+  if(dy.adr&&dy.open!=null){
+    let hi=dy.high,lo=dy.low; const t0=dy.start_ms/1000+TZ;
+    for(const c of raw){ if(c.time>=t0){hi=Math.max(hi,c.high);lo=Math.min(lo,c.low);} }
+    const lastRaw=last+off, mv=lastRaw-dy.open, pct=Math.abs(mv)/dy.adr*100, used=(hi-lo)/dy.adr*100, trend=pct>=70;
+    $("day").innerHTML=`<div class="big" style="color:${trend?'var(--amb)':'var(--tx)'}">${trend?"Trend day":"Range day"}</div>
+      <div class="sub">Moved ${mv>=0?"+":"−"}$${Math.abs(mv).toFixed(2)} from today's open (${fmt(dy.open-off)}). A trend day needs 70% of a normal day's move ($${dy.adr.toFixed(0)}): now ${pct.toFixed(0)}%.</div>
+      <div class="meter"><i style="width:${Math.min(100,pct)}%"></i></div>
+      <div class="sub">Range used so far: $${(hi-lo).toFixed(2)} = ${used.toFixed(0)}% of a normal day. Day starts 6 PM New York.</div>`;
+  } else $("day").textContent="Not enough data yet.";
+  // ---- insight
+  $("insight").innerHTML=(brain.insight||[]).map(t=>`<p>${esc(t)}</p>`).join("");
+  // ---- statistics
+  const S=brain.stats, R=brain.rules;
+  const rowsOf=(obj,lab=x=>x)=>Object.entries(obj||{}).sort((a,b)=>b[1].n-a[1].n).map(([k,v])=>
+    `<tr><td>${esc(lab(k))}</td><td class="n">${v.held}/${v.n}</td><td class="n">${v.pct}%<span class="hb" style="width:${Math.round(v.pct*.4)}px;background:${v.pct>=55?'var(--grn)':v.pct<45?'var(--red)':'var(--amb)'}"></span></td></tr>`).join("");
+  const tbl=(t,obj,lab)=>`<div class="card"><h3>${t}</h3><table class="st">${rowsOf(obj,lab)||'<tr><td class="sub">no results yet</td></tr>'}</table></div>`;
+  const o=S.overall||{};
+  $("stats").innerHTML=`<div class="card"><h3>Overall</h3><div class="big">${o.n?o.pct+"% held":"–"}</div>
+      <div class="sub">${o.held||0} of ${o.n||0} finished touches · last 20: ${S.last20?S.last20.pct+"%":"–"} · open now: ${brain.pending||0} · timed out: ${S.timeouts||0}</div>
+      <div class="rules">How it is scored: a touch is price entering a level's zone (level ±$${R.zone}) from outside. HELD = it then bounced $${R.target} beyond the zone edge. BROKE = it went $${R.target} through the far edge first. Nothing within ${R.timeout_min/60} h = not counted. A coin flip would be 50%. Older touches count less (half weight after ${R.half_life_days} days). ${R.ready?`BUY/SELL tag at Brain ≥ ${R.tag_pct}%, CONSIDER ≥ ${R.consider_pct}%.`:`BUY/SELL tags switch on after ${R.tag_min_n} results (now ${o.n||0}).`}</div></div>`
+    +tbl("By level source",S.tag)+tbl("By session (your time)",S.sess,sessLabel)+tbl("With / against 4h trend",S.trend,k=>k==="with"?"With the 4h trend":k==="against"?"Against the 4h trend":"No clear trend")
+    +tbl("Support vs resistance",S.side);
+  const age=Math.round((Date.now()-brain.generated_ms)/60000);
+  $("bage").textContent=`Brain updated ${agoTxt(age)} · runs every 15 min, 24 h, Mon–Fri`;
+}
+$("ladall").onclick=()=>{ladAll=!ladAll;renderBrain();};
+$("tg_mem").classList.toggle("on",show.mem);
+$("tg_mem").onclick=e=>{show.mem=!show.mem;store.set("showMem",show.mem?"1":"0");e.target.classList.toggle("on",show.mem);drawLines()};
+loadBrain(); setInterval(loadBrain,60000);
 $("tf").onchange=()=>{tf=$("tf").value;store.set("tf",tf);loadCandles()};
 $("tg_opt").onclick=e=>{show.opt=!show.opt;e.target.classList.toggle("on",show.opt);drawLines()};
 $("tg_mark").onclick=e=>{show.mark=!show.mark;e.target.classList.toggle("on",show.mark);drawLines()};
