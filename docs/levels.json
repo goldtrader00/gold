@@ -1,10 +1,10 @@
 {
   "symbol": "GLD",
   "max_dte": 45,
-  "quote_age_min": 80.41650901666667,
-  "generated_local": "2026-10-31 04:20 (UTC+7)",
+  "quote_age_min": 128.54873396666667,
+  "generated_local": "2026-10-31 05:08 (UTC+7)",
   "gld_price": 355.3233330583437,
-  "gld_quote": 355.2599,
+  "gld_quote": 355.3,
   "spot_xauusd": 3876.4,
   "ratio": 10.9095,
   "ratio_src": "last fresh-quote reading (2026-10-30)",
@@ -13,8 +13,8 @@
   "gamma_regime": "negative gamma (hedging amplifies moves)",
   "max_pain_xauusd": 4254.7,
   "max_pain_expiry": "2026-11-20",
-  "vwap_week": 3986.12,
-  "vwap_month": 4098.82,
+  "vwap_week": 3979.35,
+  "vwap_month": 4092.26,
   "walls": {
     "put_wall_xauusd": 3763.78,
     "put_wall_oi": 80487,
@@ -316,25 +316,25 @@
   "paxg": {
     "symbol": "PAXGUSDT",
     "profile": {
-      "Wk POC": 3985.51,
-      "Wk VAH": 4045.01,
-      "Wk VAL": 3970.01,
-      "Mo POC": 4127.51,
-      "Mo VAH": 4191.01,
-      "Mo VAL": 4074.01
+      "Wk POC": 3979.06,
+      "Wk VAH": 4038.56,
+      "Wk VAL": 3963.56,
+      "Mo POC": 4121.06,
+      "Mo VAH": 4184.56,
+      "Mo VAL": 4067.56
     },
-    "last": 3894.39,
-    "premium": 17.99009799999976,
-    "premium_pct": 0.46409293299996995,
-    "vwap_week_token": 4004.106204032523,
-    "vwap_month_token": 4116.805603426941,
-    "vwap_week_spot": 3986.12,
-    "vwap_month_spot": 4098.82,
-    "week_volume_oz": 14885.194,
+    "last": 3900.84,
+    "premium": 24.440098000000035,
+    "premium_pct": 0.6304844344720559,
+    "vwap_week_token": 4003.786157659899,
+    "vwap_month_token": 4116.698050051038,
+    "vwap_week_spot": 3979.35,
+    "vwap_month_spot": 4092.26,
+    "week_volume_oz": 14929.9757,
     "week_buy_pct": 45.1,
-    "week_delta_oz": -1468.8031999999985,
+    "week_delta_oz": -1459.5965000000015,
     "price_at_quote": 3903.43,
-    "last_bar_utc": "30/10 21:15"
+    "last_bar_utc": "30/10 22:00"
   },
   "score": {
     "value": -0.16,
@@ -462,8 +462,7 @@
     {
       "kind": "strike",
       "tags": [
-        "Put OI",
-        "Wk VAL"
+        "Put OI"
       ],
       "pos": "above",
       "signal": "ITM PUTS",
@@ -484,6 +483,18 @@
       "bars": 1,
       "oi_frac": 0.024539191956805064,
       "rank": 9
+    },
+    {
+      "kind": "special",
+      "tags": [
+        "Wk VAL"
+      ],
+      "signal": "VPROF",
+      "zone_lo": 3963.56,
+      "zone_hi": 3963.56,
+      "dist": 87.16,
+      "pos": "above",
+      "dist_pct": 2.25
     },
     {
       "kind": "strike",
@@ -1025,13 +1036,13 @@
     "marks": [
       {
         "name": "VWAP W",
-        "px": 3986.12,
-        "dist": 109.72
+        "px": 3979.35,
+        "dist": 102.95
       },
       {
         "name": "VWAP M",
-        "px": 4098.82,
-        "dist": 222.42
+        "px": 4092.26,
+        "dist": 215.86
       },
       {
         "name": "Gamma flip",
@@ -1049,53 +1060,53 @@
   },
   "full_table": false,
   "show_profile": true,
-  "generated_ms": 1793395223990,
+  "generated_ms": 1793398111924,
   "funds_debug": [
     {
       "tag": "Funds SELL",
-      "zone_lo": 5014.11,
-      "zone_hi": 5064.5,
-      "notional_usd": 13146034697.847399,
+      "zone_lo": 5007.69,
+      "zone_hi": 5058.02,
+      "notional_usd": 13129208582.8474,
       "cot_date": "03/02/26",
       "chg": -26087
     },
     {
       "tag": "Funds SELL",
-      "zone_lo": 4967.26,
-      "zone_hi": 5017.18,
-      "notional_usd": 9627496081.007002,
+      "zone_lo": 4960.84,
+      "zone_hi": 5010.7,
+      "notional_usd": 9615057256.007,
       "cot_date": "27/01/26",
       "chg": -19285
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4439.01,
-      "zone_hi": 4483.63,
-      "notional_usd": 6572862611.616599,
+      "zone_lo": 4432.6,
+      "zone_hi": 4477.14,
+      "notional_usd": 6563359826.616599,
       "cot_date": "02/06/26",
       "chg": 14733
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4493.95,
-      "zone_hi": 4539.11,
-      "notional_usd": 5208462282.986401,
+      "zone_lo": 4487.53,
+      "zone_hi": 4532.63,
+      "notional_usd": 5201024142.986401,
       "cot_date": "13/01/26",
       "chg": 11532
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4047.49,
-      "zone_hi": 4088.17,
-      "notional_usd": 4516918323.1808,
+      "zone_lo": 4041.07,
+      "zone_hi": 4081.69,
+      "notional_usd": 4509756243.1808,
       "cot_date": "25/11/25",
       "chg": 11104
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4165.8,
-      "zone_hi": 4207.66,
-      "notional_usd": 4611682987.0529995,
+      "zone_lo": 4159.38,
+      "zone_hi": 4201.18,
+      "notional_usd": 4604578312.0529995,
       "cot_date": "02/12/25",
       "chg": 11015
     }
@@ -1116,7 +1127,7 @@
       "col": "#ff5252",
       "oi": "#2  C 2.7K / P 17.3K",
       "pax": false,
-      "raw": 3999.96,
+      "raw": 4006.41,
       "dotted": false
     },
     {
@@ -1127,7 +1138,7 @@
       "col": "#ff5252",
       "oi": "#5  C 836 / P 14.0K",
       "pax": false,
-      "raw": 3945.41,
+      "raw": 3951.86,
       "dotted": false
     },
     {
@@ -1138,7 +1149,7 @@
       "col": "#2ecc71",
       "oi": "#4  C 219 / P 17.6K",
       "pax": false,
-      "raw": 3890.87,
+      "raw": 3897.32,
       "dotted": false
     },
     {
@@ -1149,7 +1160,7 @@
       "col": "#2ecc71",
       "oi": "#3  C 1.2K / P 17.0K",
       "pax": false,
-      "raw": 3836.32,
+      "raw": 3842.77,
       "dotted": false
     },
     {
@@ -1161,7 +1172,7 @@
       "col": "#2ecc71",
       "oi": "#1  C 78 / P 80.5K",
       "pax": false,
-      "raw": 3781.77,
+      "raw": 3788.22,
       "dotted": false
     }
   ]
