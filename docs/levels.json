@@ -1,20 +1,20 @@
 {
   "symbol": "GLD",
   "max_dte": 45,
-  "quote_age_min": 948.0028061333334,
-  "generated_local": "2026-11-06 19:47 (UTC+7)",
-  "gld_price": 372.6007809492383,
-  "gld_quote": 372.65,
-  "spot_xauusd": 4065.0,
+  "quote_age_min": 1029.6768022833335,
+  "generated_local": "2026-11-06 21:09 (UTC+7)",
+  "gld_price": 370.1076141634127,
+  "gld_quote": 371.09,
+  "spot_xauusd": 4037.8,
   "ratio": 10.9098,
   "ratio_src": "last fresh-quote reading (2026-11-05)",
-  "net_gex_usd_per_1pct": 308255511.22572005,
-  "gamma_flip_xauusd": 4009.25,
+  "net_gex_usd_per_1pct": 161433631.6208589,
+  "gamma_flip_xauusd": 4011.18,
   "gamma_regime": "positive gamma (hedging dampens moves)",
   "max_pain_xauusd": 4145.72,
   "max_pain_expiry": "2026-12-18",
-  "vwap_week": 4038.13,
-  "vwap_month": 4028.38,
+  "vwap_week": 4040.88,
+  "vwap_month": 4031.4,
   "walls": {
     "put_wall_xauusd": 3818.43,
     "put_wall_oi": 30328,
@@ -25,13 +25,13 @@
     "as_of": "27/10",
     "report_date": "2026-10-27",
     "oi": 396810,
-    "price_used": 4065.0,
+    "price_used": 4037.800049,
     "swap": {
       "net": -206050,
       "wk_chg": 14749,
       "idx": 51,
       "pct52": 42,
-      "notional": -83759325000.0,
+      "notional": -83198870009.645,
       "chg4": 23654,
       "long": 20230,
       "short": 226280,
@@ -43,7 +43,7 @@
       "wk_chg": 1356,
       "idx": 29,
       "pct52": 42,
-      "notional": 42910953000.0,
+      "notional": 42623824877.2538,
       "chg4": -14756,
       "long": 122508,
       "short": 16946,
@@ -316,88 +316,45 @@
   "paxg": {
     "symbol": "PAXGUSDT",
     "profile": {
-      "Wk POC": 4047.54,
-      "Wk VAH": 4146.04,
-      "Wk VAL": 3979.04,
-      "Mo POC": 3907.54,
-      "Mo VAH": 4082.04,
-      "Mo VAL": 3903.04
+      "Wk POC": 4050.0,
+      "Wk VAH": 4148.5,
+      "Wk VAL": 3991.5,
+      "Mo POC": 3910.0,
+      "Mo VAH": 4081.5,
+      "Mo VAL": 3905.5
     },
-    "last": 4055.96,
-    "premium": -9.039999999999964,
-    "premium_pct": -0.22238622386223772,
-    "vwap_week_token": 4029.0864146472404,
-    "vwap_month_token": 4019.3411596100996,
-    "vwap_week_spot": 4038.13,
-    "vwap_month_spot": 4028.38,
-    "week_volume_oz": 16050.946499999998,
-    "week_buy_pct": 46.3,
-    "week_delta_oz": -1174.3274999999985,
+    "last": 4026.3,
+    "premium": -11.500048999999763,
+    "premium_pct": -0.284809769192208,
+    "vwap_week_token": 4029.382447625996,
+    "vwap_month_token": 4019.9023917385375,
+    "vwap_week_spot": 4040.88,
+    "vwap_month_spot": 4031.4,
+    "week_volume_oz": 16577.8014,
+    "week_buy_pct": 45.9,
+    "week_delta_oz": -1374.4647999999988,
     "price_at_quote": 4095.3,
-    "last_bar_utc": "06/11 12:45"
+    "last_bar_utc": "06/11 14:00"
   },
   "score": {
-    "value": 0.06,
+    "value": -0.06,
     "label": "Neutral",
     "swap_component": 0.01,
-    "options_component": 0.05
+    "options_component": -0.07
   },
   "delta_vs": "2026-11-05",
   "delta_status": "OI \u0394: OI identical to the last snapshot (CBOE updates OI overnight; try again after ~18:00 your time)",
   "summary": {
-    "call_oi": 731174,
-    "put_oi": 602602,
-    "pc_ratio_oi": 0.824,
-    "call_volume": 136248,
-    "put_volume": 75292,
-    "pc_ratio_volume": 0.553,
-    "call_premium_usd_approx": 40756590,
-    "put_premium_usd_approx": 33581330
+    "call_oi": 730349,
+    "put_oi": 607351,
+    "pc_ratio_oi": 0.832,
+    "call_volume": 136188,
+    "put_volume": 75537,
+    "pc_ratio_volume": 0.555,
+    "call_premium_usd_approx": 28285819,
+    "put_premium_usd_approx": 37920754
   },
   "levels": [
-    {
-      "kind": "funds",
-      "tags": [
-        "Funds BUY"
-      ],
-      "pos": "above",
-      "signal": "UNDERWATER",
-      "zone_lo": 4192.69,
-      "zone_hi": 4234.83,
-      "dist": 127.69,
-      "dist_pct": 3.14,
-      "notional_usd": 4641456639.999999,
-      "expiry": "COT 02/12/25",
-      "chg": 11015,
-      "strength_x": 0.8,
-      "bars": 2
-    },
-    {
-      "kind": "strike",
-      "tags": [
-        "Call OI",
-        "New CALL"
-      ],
-      "pos": "above",
-      "signal": "SELL ZONE",
-      "gld_strike": 385.0,
-      "zone_lo": 4194.82,
-      "zone_hi": 4205.73,
-      "dist": 129.82,
-      "dist_pct": 3.19,
-      "call_oi": 30291,
-      "put_oi": 7023,
-      "oi": 37314,
-      "d_call": 5543,
-      "d_put": 91,
-      "volume": 12120,
-      "notional_usd": 1390322554.0339878,
-      "expiry": "18/12",
-      "strength_x": 13.2,
-      "bars": 2,
-      "oi_frac": 0.22739266888083123,
-      "rank": 2
-    },
     {
       "kind": "strike",
       "tags": [
@@ -409,20 +366,20 @@
       "gld_strike": 382.0,
       "zone_lo": 4162.09,
       "zone_hi": 4173.0,
-      "dist": 97.09,
-      "dist_pct": 2.39,
+      "dist": 124.29,
+      "dist_pct": 3.08,
       "call_oi": 5957,
       "put_oi": 667,
       "oi": 6624,
       "d_call": 1854,
       "d_put": 35,
       "volume": 5234,
-      "notional_usd": 246810757.30077544,
+      "notional_usd": 245159283.62184456,
       "expiry": "06/11",
-      "strength_x": 2.3,
+      "strength_x": 2.2,
       "bars": 1,
       "oi_frac": 0.040366860659983544,
-      "rank": 10
+      "rank": 9
     },
     {
       "kind": "strike",
@@ -435,20 +392,20 @@
       "gld_strike": 381.0,
       "zone_lo": 4151.18,
       "zone_hi": 4162.09,
-      "dist": 86.18,
-      "dist_pct": 2.12,
+      "dist": 113.38,
+      "dist_pct": 2.81,
       "call_oi": 6298,
       "put_oi": 808,
       "oi": 7106,
       "d_call": 2226,
       "d_put": 57,
       "volume": 5049,
-      "notional_usd": 264770114.94252872,
+      "notional_usd": 262998470.62452105,
       "expiry": "06/11",
-      "strength_x": 2.5,
+      "strength_x": 2.4,
       "bars": 1,
       "oi_frac": 0.04330418355221061,
-      "rank": 9
+      "rank": 8
     },
     {
       "kind": "strike",
@@ -464,17 +421,17 @@
       "gld_strike": 380.0,
       "zone_lo": 4140.27,
       "zone_hi": 4151.18,
-      "dist": 75.27,
-      "dist_pct": 1.85,
+      "dist": 102.47,
+      "dist_pct": 2.54,
       "call_oi": 48558,
       "put_oi": 31650,
       "oi": 80208,
       "d_call": 1503,
       "d_put": -32,
       "volume": 14128,
-      "notional_usd": 2988556343.837651,
+      "notional_usd": 2968559151.6819005,
       "expiry": "18/12",
-      "strength_x": 28.3,
+      "strength_x": 26.7,
       "bars": 3,
       "oi_frac": 0.4887900301654529,
       "rank": 1
@@ -490,20 +447,20 @@
       "gld_strike": 378.0,
       "zone_lo": 4118.45,
       "zone_hi": 4129.36,
-      "dist": 53.45,
-      "dist_pct": 1.31,
+      "dist": 80.65,
+      "dist_pct": 2.0,
       "call_oi": 6142,
       "put_oi": 1351,
       "oi": 7493,
       "d_call": 1196,
       "d_put": 491,
       "volume": 5535,
-      "notional_usd": 279189765.16526425,
+      "notional_usd": 277321635.2926451,
       "expiry": "10/11",
-      "strength_x": 2.6,
+      "strength_x": 2.5,
       "bars": 1,
       "oi_frac": 0.04566257350924769,
-      "rank": 8
+      "rank": 7
     },
     {
       "kind": "strike",
@@ -517,20 +474,20 @@
       "gld_strike": 377.0,
       "zone_lo": 4107.54,
       "zone_hi": 4118.45,
-      "dist": 42.54,
-      "dist_pct": 1.05,
+      "dist": 69.74,
+      "dist_pct": 1.73,
       "call_oi": 3818,
       "put_oi": 1445,
       "oi": 5263,
       "d_call": 766,
       "d_put": 706,
       "volume": 4802,
-      "notional_usd": 196099791.0135841,
+      "notional_usd": 194787637.33420408,
       "expiry": "06/11",
-      "strength_x": 1.9,
+      "strength_x": 1.8,
       "bars": 1,
       "oi_frac": 0.03207288460952497,
-      "rank": 12
+      "rank": 11
     },
     {
       "kind": "funds",
@@ -539,11 +496,11 @@
       ],
       "pos": "above",
       "signal": "UNDERWATER",
-      "zone_lo": 4074.39,
-      "zone_hi": 4115.33,
-      "dist": 9.39,
-      "dist_pct": 0.23,
-      "notional_usd": 4546932544.0,
+      "zone_lo": 4076.83,
+      "zone_hi": 4117.81,
+      "dist": 39.03,
+      "dist_pct": 0.97,
+      "notional_usd": 4549664182.4096,
       "expiry": "COT 25/11/25",
       "chg": 11104,
       "strength_x": 0.8,
@@ -560,20 +517,20 @@
       "gld_strike": 375.0,
       "zone_lo": 4085.72,
       "zone_hi": 4096.63,
-      "dist": 20.72,
-      "dist_pct": 0.51,
+      "dist": 47.92,
+      "dist_pct": 1.19,
       "call_oi": 20345,
       "put_oi": 15409,
       "oi": 35754,
       "d_call": -180,
       "d_put": 762,
       "volume": 8596,
-      "notional_usd": 1332196832.2059066,
+      "notional_usd": 1323282763.6798656,
       "expiry": "20/11",
-      "strength_x": 12.6,
+      "strength_x": 11.9,
       "bars": 2,
       "oi_frac": 0.21788598068192205,
-      "rank": 3
+      "rank": 2
     },
     {
       "kind": "special",
@@ -581,11 +538,11 @@
         "Mo VAH"
       ],
       "signal": "VPROF",
-      "zone_lo": 4082.04,
-      "zone_hi": 4082.04,
-      "dist": 17.04,
+      "zone_lo": 4081.5,
+      "zone_hi": 4081.5,
+      "dist": 43.7,
       "pos": "above",
-      "dist_pct": 0.42
+      "dist_pct": 1.08
     },
     {
       "kind": "strike",
@@ -593,51 +550,25 @@
         "Call OI",
         "New PUT"
       ],
-      "pos": "at",
-      "signal": "AT PRICE",
-      "gld_strike": 373.0,
-      "zone_lo": 4063.9,
-      "zone_hi": 4074.81,
-      "dist": 0.0,
-      "dist_pct": 0.0,
-      "call_oi": 2667,
-      "put_oi": 1950,
-      "oi": 4617,
-      "d_call": -613,
-      "d_put": 625,
-      "volume": 4235,
-      "notional_usd": 172029780.5642633,
-      "expiry": "06/11",
-      "strength_x": 1.6,
-      "bars": 1,
-      "oi_frac": 0.028136140650233097,
-      "rank": 19
-    },
-    {
-      "kind": "strike",
-      "tags": [
-        "Call OI",
-        "New PUT"
-      ],
-      "pos": "below",
-      "signal": "ITM CALLS",
+      "pos": "above",
+      "signal": "RESISTANCE",
       "gld_strike": 372.0,
       "zone_lo": 4052.99,
       "zone_hi": 4063.9,
-      "dist": 1.1,
-      "dist_pct": 0.03,
+      "dist": 15.19,
+      "dist_pct": 0.38,
       "call_oi": 3365,
       "put_oi": 2855,
       "oi": 6220,
       "d_call": 24,
       "d_put": 1224,
       "volume": 2870,
-      "notional_usd": 231757685.75042623,
+      "notional_usd": 230206936.0096427,
       "expiry": "06/11",
-      "strength_x": 2.2,
+      "strength_x": 2.1,
       "bars": 1,
       "oi_frac": 0.03790487217770194,
-      "rank": 11
+      "rank": 10
     },
     {
       "kind": "special",
@@ -645,65 +576,92 @@
         "Wk POC"
       ],
       "signal": "VPROF",
-      "zone_lo": 4047.54,
-      "zone_hi": 4047.54,
-      "dist": 17.46,
-      "pos": "below",
-      "dist_pct": 0.43
+      "zone_lo": 4050.0,
+      "zone_hi": 4050.0,
+      "dist": 12.2,
+      "pos": "above",
+      "dist_pct": 0.3
     },
     {
       "kind": "strike",
       "tags": [
         "Put OI",
         "New PUT",
-        "VWAP W"
+        "VWAP W",
+        "VWAP M"
       ],
-      "pos": "below",
-      "signal": "BUY ZONE",
+      "pos": "at",
+      "signal": "AT PRICE",
       "gld_strike": 370.0,
       "zone_lo": 4031.17,
       "zone_hi": 4042.08,
-      "dist": 22.92,
-      "dist_pct": 0.56,
+      "dist": 0.0,
+      "dist_pct": 0.0,
       "call_oi": 13037,
       "put_oi": 22615,
       "oi": 35652,
       "d_call": -1176,
       "d_put": 1022,
       "volume": 7757,
-      "notional_usd": 1328396304.2402244,
+      "notional_usd": 1319507666.015399,
       "expiry": "20/11",
-      "strength_x": 12.6,
+      "strength_x": 11.9,
       "bars": 2,
       "oi_frac": 0.21726438953045493,
-      "rank": 4
+      "rank": 3
     },
     {
       "kind": "strike",
       "tags": [
         "Put OI",
-        "New PUT",
-        "VWAP M"
+        "New PUT"
       ],
       "pos": "below",
       "signal": "BUY ZONE",
       "gld_strike": 369.0,
       "zone_lo": 4020.26,
       "zone_hi": 4031.17,
-      "dist": 33.83,
-      "dist_pct": 0.83,
+      "dist": 6.63,
+      "dist_pct": 0.16,
       "call_oi": 2624,
       "put_oi": 7996,
       "oi": 10620,
       "d_call": -91,
       "d_put": 1180,
       "volume": 1942,
-      "notional_usd": 395702029.36809105,
+      "notional_usd": 393054286.24154425,
       "expiry": "18/12",
-      "strength_x": 3.7,
+      "strength_x": 3.5,
       "bars": 1,
       "oi_frac": 0.06471860812334318,
-      "rank": 7
+      "rank": 6
+    },
+    {
+      "kind": "strike",
+      "tags": [
+        "Put OI",
+        "New PUT",
+        "Gamma flip"
+      ],
+      "pos": "below",
+      "signal": "SUPPORT",
+      "gld_strike": 368.0,
+      "zone_lo": 4009.35,
+      "zone_hi": 4020.26,
+      "dist": 17.54,
+      "dist_pct": 0.43,
+      "call_oi": 2318,
+      "put_oi": 2913,
+      "oi": 5231,
+      "d_call": -36,
+      "d_put": 514,
+      "volume": 1593,
+      "notional_usd": 193603292.96888116,
+      "expiry": "06/11",
+      "strength_x": 1.7,
+      "bars": 1,
+      "oi_frac": 0.031877875620829395,
+      "rank": 12
     },
     {
       "kind": "strike",
@@ -713,62 +671,61 @@
       ],
       "pos": "below",
       "signal": "SUPPORT",
-      "gld_strike": 368.0,
-      "zone_lo": 4009.35,
-      "zone_hi": 4020.26,
-      "dist": 44.74,
-      "dist_pct": 1.1,
-      "call_oi": 2318,
-      "put_oi": 2913,
-      "oi": 5231,
-      "d_call": -36,
-      "d_put": 514,
-      "volume": 1593,
-      "notional_usd": 194907468.51454654,
-      "expiry": "06/11",
-      "strength_x": 1.8,
+      "gld_strike": 367.0,
+      "zone_lo": 3998.44,
+      "zone_hi": 4009.35,
+      "dist": 28.45,
+      "dist_pct": 0.7,
+      "call_oi": 1711,
+      "put_oi": 2387,
+      "oi": 4098,
+      "d_call": 31,
+      "d_put": 1070,
+      "volume": 2265,
+      "notional_usd": 151670100.2841665,
+      "expiry": "20/11",
+      "strength_x": 1.4,
       "bars": 1,
-      "oi_frac": 0.031877875620829395,
-      "rank": 13
+      "oi_frac": 0.024973338614826777,
+      "rank": 19
     },
     {
       "kind": "special",
       "tags": [
-        "Gamma flip"
+        "Wk VAL"
       ],
-      "signal": "REGIME",
-      "zone_lo": 4009.25,
-      "zone_hi": 4009.25,
-      "dist": 55.75,
+      "signal": "VPROF",
+      "zone_lo": 3991.5,
+      "zone_hi": 3991.5,
+      "dist": 46.3,
       "pos": "below",
-      "dist_pct": 1.37
+      "dist_pct": 1.15
     },
     {
       "kind": "strike",
       "tags": [
         "Put OI",
-        "New PUT",
-        "Wk VAL"
+        "New PUT"
       ],
       "pos": "below",
       "signal": "BUY ZONE",
       "gld_strike": 365.0,
       "zone_lo": 3976.62,
       "zone_hi": 3987.53,
-      "dist": 77.47,
-      "dist_pct": 1.91,
+      "dist": 50.27,
+      "dist_pct": 1.24,
       "call_oi": 9353,
       "put_oi": 18726,
       "oi": 28079,
       "d_call": -200,
       "d_put": 759,
       "volume": 3972,
-      "notional_usd": 1046225732.8273662,
+      "notional_usd": 1039225169.8094465,
       "expiry": "20/11",
-      "strength_x": 9.9,
+      "strength_x": 9.4,
       "bars": 1,
       "oi_frac": 0.1711142935494683,
-      "rank": 5
+      "rank": 4
     },
     {
       "kind": "strike",
@@ -781,20 +738,20 @@
       "gld_strike": 363.0,
       "zone_lo": 3954.8,
       "zone_hi": 3965.71,
-      "dist": 99.29,
-      "dist_pct": 2.44,
+      "dist": 72.09,
+      "dist_pct": 1.79,
       "call_oi": 1808,
       "put_oi": 3349,
       "oi": 5157,
       "d_call": 16,
       "d_put": 1073,
       "volume": 2027,
-      "notional_usd": 192150222.73552218,
+      "notional_usd": 190864496.62407193,
       "expiry": "06/11",
-      "strength_x": 1.8,
+      "strength_x": 1.7,
       "bars": 1,
       "oi_frac": 0.03142691733447089,
-      "rank": 14
+      "rank": 13
     },
     {
       "kind": "strike",
@@ -807,77 +764,110 @@
       "gld_strike": 360.0,
       "zone_lo": 3922.07,
       "zone_hi": 3932.98,
-      "dist": 132.02,
-      "dist_pct": 3.25,
+      "dist": 104.82,
+      "dist_pct": 2.6,
       "call_oi": 4568,
       "put_oi": 21832,
       "oi": 26400,
       "d_call": 36,
       "d_put": 684,
       "volume": 4454,
-      "notional_usd": 983666061.7059891,
+      "notional_usd": 977084101.3914095,
       "expiry": "20/11",
-      "strength_x": 9.3,
+      "strength_x": 8.8,
       "bars": 1,
       "oi_frac": 0.16088241567384748,
-      "rank": 6
+      "rank": 5
+    },
+    {
+      "kind": "special",
+      "tags": [
+        "Mo POC"
+      ],
+      "signal": "VPROF",
+      "zone_lo": 3910.0,
+      "zone_hi": 3910.0,
+      "dist": 127.8,
+      "pos": "below",
+      "dist_pct": 3.17
+    },
+    {
+      "kind": "special",
+      "tags": [
+        "Mo VAL"
+      ],
+      "signal": "VPROF",
+      "zone_lo": 3905.5,
+      "zone_hi": 3905.5,
+      "dist": 132.3,
+      "pos": "below",
+      "dist_pct": 3.28
+    },
+    {
+      "kind": "strike",
+      "tags": [
+        "Put OI"
+      ],
+      "pos": "below",
+      "signal": "SUPPORT",
+      "gld_strike": 356.0,
+      "zone_lo": 3878.43,
+      "zone_hi": 3889.34,
+      "dist": 148.46,
+      "dist_pct": 3.68,
+      "call_oi": 1022,
+      "put_oi": 2835,
+      "oi": 3857,
+      "d_call": -46,
+      "d_put": 42,
+      "volume": 446,
+      "notional_usd": 142750506.78282827,
+      "expiry": "06/11",
+      "strength_x": 1.3,
+      "bars": 1,
+      "oi_frac": 0.023504677168713246,
+      "rank": 22
     }
   ],
   "chart": [
-    {
-      "xau": 4211.18,
-      "c_oi": 3028,
-      "p_oi": 343,
-      "pos": "above",
-      "strength_x": 1.2,
-      "rank": 26
-    },
-    {
-      "xau": 4200.27,
-      "c_oi": 30291,
-      "p_oi": 7023,
-      "pos": "above",
-      "strength_x": 13.2,
-      "rank": 2
-    },
     {
       "xau": 4189.36,
       "c_oi": 3847,
       "p_oi": 972,
       "pos": "above",
-      "strength_x": 1.7,
-      "rank": 18
+      "strength_x": 1.6,
+      "rank": 17
     },
     {
       "xau": 4178.45,
       "c_oi": 3405,
       "p_oi": 528,
       "pos": "above",
-      "strength_x": 1.4,
-      "rank": 22
+      "strength_x": 1.3,
+      "rank": 21
     },
     {
       "xau": 4167.54,
       "c_oi": 5957,
       "p_oi": 667,
       "pos": "above",
-      "strength_x": 2.3,
-      "rank": 10
+      "strength_x": 2.2,
+      "rank": 9
     },
     {
       "xau": 4156.63,
       "c_oi": 6298,
       "p_oi": 808,
       "pos": "above",
-      "strength_x": 2.5,
-      "rank": 9
+      "strength_x": 2.4,
+      "rank": 8
     },
     {
       "xau": 4145.72,
       "c_oi": 48558,
       "p_oi": 31650,
       "pos": "above",
-      "strength_x": 28.3,
+      "strength_x": 26.7,
       "rank": 1
     },
     {
@@ -885,96 +875,96 @@
       "c_oi": 3034,
       "p_oi": 1016,
       "pos": "above",
-      "strength_x": 1.4,
-      "rank": 21
+      "strength_x": 1.3,
+      "rank": 20
     },
     {
       "xau": 4123.9,
       "c_oi": 6142,
       "p_oi": 1351,
       "pos": "above",
-      "strength_x": 2.6,
-      "rank": 8
+      "strength_x": 2.5,
+      "rank": 7
     },
     {
       "xau": 4112.99,
       "c_oi": 3818,
       "p_oi": 1445,
       "pos": "above",
-      "strength_x": 1.9,
-      "rank": 12
+      "strength_x": 1.8,
+      "rank": 11
     },
     {
       "xau": 4102.08,
       "c_oi": 3718,
       "p_oi": 1302,
       "pos": "above",
-      "strength_x": 1.8,
-      "rank": 16
+      "strength_x": 1.7,
+      "rank": 15
     },
     {
       "xau": 4091.18,
       "c_oi": 20345,
       "p_oi": 15409,
       "pos": "above",
-      "strength_x": 12.6,
-      "rank": 3
+      "strength_x": 11.9,
+      "rank": 2
     },
     {
       "xau": 4080.27,
       "c_oi": 3109,
       "p_oi": 1833,
       "pos": "above",
-      "strength_x": 1.7,
-      "rank": 17
+      "strength_x": 1.6,
+      "rank": 16
     },
     {
       "xau": 4069.36,
       "c_oi": 2667,
       "p_oi": 1950,
-      "pos": "at",
-      "strength_x": 1.6,
-      "rank": 19
+      "pos": "above",
+      "strength_x": 1.5,
+      "rank": 18
     },
     {
       "xau": 4058.45,
       "c_oi": 3365,
       "p_oi": 2855,
-      "pos": "below",
-      "strength_x": 2.2,
-      "rank": 11
+      "pos": "above",
+      "strength_x": 2.1,
+      "rank": 10
     },
     {
       "xau": 4047.54,
       "c_oi": 2308,
       "p_oi": 2715,
-      "pos": "below",
-      "strength_x": 1.8,
-      "rank": 15
+      "pos": "above",
+      "strength_x": 1.7,
+      "rank": 14
     },
     {
       "xau": 4036.63,
       "c_oi": 13037,
       "p_oi": 22615,
-      "pos": "below",
-      "strength_x": 12.6,
-      "rank": 4
+      "pos": "at",
+      "strength_x": 11.9,
+      "rank": 3
     },
     {
       "xau": 4025.72,
       "c_oi": 2624,
       "p_oi": 7996,
       "pos": "below",
-      "strength_x": 3.7,
-      "rank": 7
+      "strength_x": 3.5,
+      "rank": 6
     },
     {
       "xau": 4014.81,
       "c_oi": 2318,
       "p_oi": 2913,
       "pos": "below",
-      "strength_x": 1.8,
-      "rank": 13
+      "strength_x": 1.7,
+      "rank": 12
     },
     {
       "xau": 4003.9,
@@ -982,14 +972,14 @@
       "p_oi": 2387,
       "pos": "below",
       "strength_x": 1.4,
-      "rank": 20
+      "rank": 19
     },
     {
       "xau": 3992.99,
       "c_oi": 1616,
       "p_oi": 1945,
       "pos": "below",
-      "strength_x": 1.3,
+      "strength_x": 1.2,
       "rank": 24
     },
     {
@@ -997,8 +987,8 @@
       "c_oi": 9353,
       "p_oi": 18726,
       "pos": "below",
-      "strength_x": 9.9,
-      "rank": 5
+      "strength_x": 9.4,
+      "rank": 4
     },
     {
       "xau": 3971.17,
@@ -1013,15 +1003,15 @@
       "c_oi": 1808,
       "p_oi": 3349,
       "pos": "below",
-      "strength_x": 1.8,
-      "rank": 14
+      "strength_x": 1.7,
+      "rank": 13
     },
     {
       "xau": 3949.35,
       "c_oi": 1096,
       "p_oi": 2345,
       "pos": "below",
-      "strength_x": 1.2,
+      "strength_x": 1.1,
       "rank": 25
     },
     {
@@ -1037,16 +1027,40 @@
       "c_oi": 4568,
       "p_oi": 21832,
       "pos": "below",
-      "strength_x": 9.3,
-      "rank": 6
+      "strength_x": 8.8,
+      "rank": 5
     },
     {
       "xau": 3916.62,
       "c_oi": 475,
       "p_oi": 2358,
       "pos": "below",
-      "strength_x": 1.0,
+      "strength_x": 0.9,
       "rank": 28
+    },
+    {
+      "xau": 3905.71,
+      "c_oi": 788,
+      "p_oi": 2516,
+      "pos": "below",
+      "strength_x": 1.1,
+      "rank": 26
+    },
+    {
+      "xau": 3894.8,
+      "c_oi": 425,
+      "p_oi": 1609,
+      "pos": "below",
+      "strength_x": 0.7,
+      "rank": 29
+    },
+    {
+      "xau": 3883.89,
+      "c_oi": 1022,
+      "p_oi": 2835,
+      "pos": "below",
+      "strength_x": 1.3,
+      "rank": 22
     }
   ],
   "watch": {
@@ -1062,20 +1076,20 @@
         "gld_strike": 375.0,
         "zone_lo": 4085.72,
         "zone_hi": 4096.63,
-        "dist": 20.72,
-        "dist_pct": 0.51,
+        "dist": 47.92,
+        "dist_pct": 1.19,
         "call_oi": 20345,
         "put_oi": 15409,
         "oi": 35754,
         "d_call": -180,
         "d_put": 762,
         "volume": 8596,
-        "notional_usd": 1332196832.2059066,
+        "notional_usd": 1323282763.6798656,
         "expiry": "20/11",
-        "strength_x": 12.6,
+        "strength_x": 11.9,
         "bars": 2,
         "oi_frac": 0.21788598068192205,
-        "rank": 3
+        "rank": 2
       },
       {
         "kind": "strike",
@@ -1091,17 +1105,17 @@
         "gld_strike": 380.0,
         "zone_lo": 4140.27,
         "zone_hi": 4151.18,
-        "dist": 75.27,
-        "dist_pct": 1.85,
+        "dist": 102.47,
+        "dist_pct": 2.54,
         "call_oi": 48558,
         "put_oi": 31650,
         "oi": 80208,
         "d_call": 1503,
         "d_put": -32,
         "volume": 14128,
-        "notional_usd": 2988556343.837651,
+        "notional_usd": 2968559151.6819005,
         "expiry": "18/12",
-        "strength_x": 28.3,
+        "strength_x": 26.7,
         "bars": 3,
         "oi_frac": 0.4887900301654529,
         "rank": 1
@@ -1112,103 +1126,103 @@
         "kind": "strike",
         "tags": [
           "Put OI",
-          "New PUT",
-          "VWAP W"
-        ],
-        "pos": "below",
-        "signal": "BUY ZONE",
-        "gld_strike": 370.0,
-        "zone_lo": 4031.17,
-        "zone_hi": 4042.08,
-        "dist": 22.92,
-        "dist_pct": 0.56,
-        "call_oi": 13037,
-        "put_oi": 22615,
-        "oi": 35652,
-        "d_call": -1176,
-        "d_put": 1022,
-        "volume": 7757,
-        "notional_usd": 1328396304.2402244,
-        "expiry": "20/11",
-        "strength_x": 12.6,
-        "bars": 2,
-        "oi_frac": 0.21726438953045493,
-        "rank": 4
-      },
-      {
-        "kind": "strike",
-        "tags": [
-          "Put OI",
-          "New PUT",
-          "VWAP M"
+          "New PUT"
         ],
         "pos": "below",
         "signal": "BUY ZONE",
         "gld_strike": 369.0,
         "zone_lo": 4020.26,
         "zone_hi": 4031.17,
-        "dist": 33.83,
-        "dist_pct": 0.83,
+        "dist": 6.63,
+        "dist_pct": 0.16,
         "call_oi": 2624,
         "put_oi": 7996,
         "oi": 10620,
         "d_call": -91,
         "d_put": 1180,
         "volume": 1942,
-        "notional_usd": 395702029.36809105,
+        "notional_usd": 393054286.24154425,
         "expiry": "18/12",
-        "strength_x": 3.7,
+        "strength_x": 3.5,
         "bars": 1,
         "oi_frac": 0.06471860812334318,
-        "rank": 7
+        "rank": 6
+      },
+      {
+        "kind": "strike",
+        "tags": [
+          "Put OI",
+          "New PUT"
+        ],
+        "pos": "below",
+        "signal": "BUY ZONE",
+        "gld_strike": 365.0,
+        "zone_lo": 3976.62,
+        "zone_hi": 3987.53,
+        "dist": 50.27,
+        "dist_pct": 1.24,
+        "call_oi": 9353,
+        "put_oi": 18726,
+        "oi": 28079,
+        "d_call": -200,
+        "d_put": 759,
+        "volume": 3972,
+        "notional_usd": 1039225169.8094465,
+        "expiry": "20/11",
+        "strength_x": 9.4,
+        "bars": 1,
+        "oi_frac": 0.1711142935494683,
+        "rank": 4
       }
     ],
     "here": {
       "kind": "strike",
       "tags": [
-        "Call OI",
-        "New PUT"
+        "Put OI",
+        "New PUT",
+        "VWAP W",
+        "VWAP M"
       ],
       "pos": "at",
       "signal": "AT PRICE",
-      "gld_strike": 373.0,
-      "zone_lo": 4063.9,
-      "zone_hi": 4074.81,
+      "gld_strike": 370.0,
+      "zone_lo": 4031.17,
+      "zone_hi": 4042.08,
       "dist": 0.0,
       "dist_pct": 0.0,
-      "call_oi": 2667,
-      "put_oi": 1950,
-      "oi": 4617,
-      "d_call": -613,
-      "d_put": 625,
-      "volume": 4235,
-      "notional_usd": 172029780.5642633,
-      "expiry": "06/11",
-      "strength_x": 1.6,
-      "bars": 1,
-      "oi_frac": 0.028136140650233097,
-      "rank": 19
+      "call_oi": 13037,
+      "put_oi": 22615,
+      "oi": 35652,
+      "d_call": -1176,
+      "d_put": 1022,
+      "volume": 7757,
+      "notional_usd": 1319507666.015399,
+      "expiry": "20/11",
+      "strength_x": 11.9,
+      "bars": 2,
+      "oi_frac": 0.21726438953045493,
+      "rank": 3
     },
     "marks": [
       {
         "name": "VWAP W",
-        "px": 4038.13,
-        "dist": -26.87
+        "px": 4040.88,
+        "dist": 3.08
       },
       {
         "name": "VWAP M",
-        "px": 4028.38,
-        "dist": -36.62
+        "px": 4031.4,
+        "dist": -6.4
       },
       {
         "name": "Gamma flip",
-        "px": 4009.25,
-        "dist": -55.75
+        "px": 4011.18,
+        "dist": -26.62
       },
       {
         "name": "Max pain",
         "px": 4145.72,
-        "dist": 80.72
+        "dist": 107.92
       }
     ],
     "min_x": 3.0,
@@ -1216,53 +1230,53 @@
   },
   "full_table": false,
   "show_profile": true,
-  "generated_ms": 1793969279168,
+  "generated_ms": 1793974179608,
   "funds_debug": [
     {
       "tag": "Funds SELL",
-      "zone_lo": 5041.0,
-      "zone_hi": 5091.67,
-      "notional_usd": 13216548114.5,
+      "zone_lo": 5043.45,
+      "zone_hi": 5094.14,
+      "notional_usd": 13222965644.326302,
       "cot_date": "03/02/26",
       "chg": -26087
     },
     {
       "tag": "Funds SELL",
-      "zone_lo": 4994.15,
-      "zone_hi": 5044.35,
-      "notional_usd": 9679623625.0,
+      "zone_lo": 4996.6,
+      "zone_hi": 5046.82,
+      "notional_usd": 9684367829.496498,
       "cot_date": "27/01/26",
       "chg": -19285
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4465.91,
-      "zone_hi": 4510.79,
-      "notional_usd": 6612686054.999999,
+      "zone_lo": 4468.36,
+      "zone_hi": 4513.26,
+      "notional_usd": 6616310445.1917,
       "cot_date": "02/06/26",
       "chg": 14733
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4520.84,
-      "zone_hi": 4566.28,
-      "notional_usd": 5239633392.0,
+      "zone_lo": 4523.29,
+      "zone_hi": 4568.75,
+      "notional_usd": 5242470320.506801,
       "cot_date": "13/01/26",
       "chg": 11532
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4074.39,
-      "zone_hi": 4115.33,
-      "notional_usd": 4546932544.0,
+      "zone_lo": 4076.83,
+      "zone_hi": 4117.81,
+      "notional_usd": 4549664182.4096,
       "cot_date": "25/11/25",
       "chg": 11104
     },
     {
       "tag": "Funds BUY",
-      "zone_lo": 4192.69,
-      "zone_hi": 4234.83,
-      "notional_usd": 4641456639.999999,
+      "zone_lo": 4195.14,
+      "zone_hi": 4237.3,
+      "notional_usd": 4644166383.973499,
       "cot_date": "02/12/25",
       "chg": 11015
     }
@@ -1283,23 +1297,33 @@
       "col": "#ff5252",
       "oi": "#1  C 48.6K / P 31.6K",
       "pax": false,
-      "raw": 4136.69,
+      "raw": 4134.22,
+      "dotted": false
+    },
+    {
+      "px": 4097.32,
+      "names": [
+        "Funds buy (est.)"
+      ],
+      "col": "#ff9ec7",
+      "oi": "",
+      "pax": false,
+      "raw": 4085.82,
       "dotted": false
     },
     {
       "px": 4091.18,
       "names": [
-        "New PUT",
-        "Funds buy (est.)"
+        "New PUT"
       ],
       "col": "#ff5252",
-      "oi": "#3  C 20.3K / P 15.4K",
+      "oi": "#2  C 20.3K / P 15.4K",
       "pax": false,
-      "raw": 4082.14,
+      "raw": 4079.67,
       "dotted": false
     },
     {
-      "px": 4047.54,
+      "px": 4050.0,
       "names": [
         "Week POC"
       ],
@@ -1316,9 +1340,9 @@
         "VWAP week"
       ],
       "col": "#2ecc71",
-      "oi": "#4  C 13.0K / P 22.6K",
+      "oi": "#3  C 13.0K / P 22.6K",
       "pax": false,
-      "raw": 4027.59,
+      "raw": 4025.12,
       "dotted": false
     },
     {
@@ -1328,20 +1352,20 @@
         "VWAP month"
       ],
       "col": "#2ecc71",
-      "oi": "#7  C 2.6K / P 8.0K",
+      "oi": "#6  C 2.6K / P 8.0K",
       "pax": false,
-      "raw": 4016.68,
+      "raw": 4014.21,
       "dotted": false
     },
     {
-      "px": 4009.25,
+      "px": 4011.18,
       "names": [
         "Gamma Flip"
       ],
       "col": "#b79bff",
       "oi": "",
       "pax": false,
-      "raw": 4000.21,
+      "raw": 3999.68,
       "dotted": true
     },
     {
@@ -1350,9 +1374,20 @@
         "New PUT"
       ],
       "col": "#2ecc71",
-      "oi": "#5  C 9.4K / P 18.7K",
+      "oi": "#4  C 9.4K / P 18.7K",
       "pax": false,
-      "raw": 3973.03,
+      "raw": 3970.57,
+      "dotted": false
+    },
+    {
+      "px": 3927.53,
+      "names": [
+        "New PUT"
+      ],
+      "col": "#2ecc71",
+      "oi": "#5  C 4.6K / P 21.8K",
+      "pax": false,
+      "raw": 3916.02,
       "dotted": false
     }
   ]
